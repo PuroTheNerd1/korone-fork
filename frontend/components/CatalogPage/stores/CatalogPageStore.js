@@ -186,10 +186,22 @@ const CatalogPageStore = createContainer(() => {
         return clone;
     }
     
-    useEffect(async () => {
-        let catalogNav = await getNavigationMenuItems();
-        setCategoryNav(catalogNav.categories);
-        setGenreNav(catalogNav.genres);
+    useEffect(() => {
+        let cancelled = false;
+
+        async function run() {
+            let catalogNav = await getNavigationMenuItems();
+            if (cancelled) return;
+
+            setCategoryNav(catalogNav.categories);
+            setGenreNav(catalogNav.genres);
+        }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
     
     return {

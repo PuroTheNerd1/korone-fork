@@ -69,9 +69,19 @@ const Social = () => {
     const [isSaving, setSaving] = useState(false);
     const feedback = Feedback.useContainer();
     
-    useEffect(async () => {
-        const userCons = await getUserConnections({ userId: auth.userId });
-        await setConns(userCons);
+    useEffect(() => {
+        let cancelled = false;
+
+        async function run() {
+            const userCons = await getUserConnections({ userId: auth.userId });
+            if (!cancelled) setConns(userCons);
+        }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
     
     // return <a title={ConvertSocialToHuman(platform)} className={s2.connectionLink} href={url} target="_blank">

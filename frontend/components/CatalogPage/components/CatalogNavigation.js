@@ -105,9 +105,19 @@ function CatalogNavigation() {
 
     const [deb, setDeb] = useState(false);
 
-    useEffect(async () => {
-        await wait(0.4);
-        setClosingCategory(null);
+    useEffect(() => {
+        let cancelled = false;
+
+        async function run() {
+            await wait(0.4);
+            if (!cancelled) setClosingCategory(null);
+        }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, [closingCategory]);
     
     return <div className={`${s.categoryWrapper} ${s.searchOptionWrapper} flex flex-column`}>

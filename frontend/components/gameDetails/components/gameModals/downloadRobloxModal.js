@@ -119,20 +119,31 @@ const downloadProjexModal = props => {
         window.location.href = "https://github.com/KoroneX/Korone-Bootstrapper/releases";
     }
 
-    useEffect(async () => {
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        let tries = 0;
-        let success;
-        while ((success === null || success !== true) && tries < 10 && !props.closeModals) {
-            tries += 1;
-            multiGetPresence({userIds: [auth.userId]}).then(res => {
+    useEffect(() => {
+        let cancelled = false;
+
+        async function run() {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            let tries = 0;
+            let success;
+            while (!cancelled && (success === null || success !== true) && tries < 10 && !props.closeModals) {
+                tries += 1;
+                const res = await multiGetPresence({userIds: [auth.userId]});
+                if (cancelled) return;
+
                 if (res[0] && res[0]?.userPresenceType === "InGame") {
                     success = true;
                     props.exitFunction();
                 }
-            });
-            await new Promise(resolve => setTimeout(resolve, 3000));
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            }
         }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     return <>

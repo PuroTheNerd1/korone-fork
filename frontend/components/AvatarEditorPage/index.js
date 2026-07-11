@@ -185,6 +185,7 @@ const useStyles = createUseStyles({
 function AvatarEditor() {
     const s = useStyles({theme: getTheme()});
     const buttonStyles = useButtonStyles();
+    const router = useRouter();
     const auth = AuthenticationStore.useContainer();
     const store = AvatarInfoStore.useContainer();
     const page = AvatarPageStore.useContainer();
@@ -249,10 +250,20 @@ function AvatarEditor() {
         debounce.current = false;
     }
     
-    useEffect(async () => {
+    useEffect(() => {
         if (debounce.current) {
-            await wait(3);
-            if (debounce.current) debounce.current = false;
+            let cancelled = false;
+
+            async function run() {
+                await wait(3);
+                if (!cancelled && debounce.current) debounce.current = false;
+            }
+
+            run().then();
+
+            return () => {
+                cancelled = true;
+            };
         }
     }, [debounce]);
     
@@ -264,12 +275,25 @@ function AvatarEditor() {
         setIsRendering(store.isRendering);
     }, [store.isRendering]);
     
-    useEffect(async () => {
-        if (store.isRendering || page.thumbnailType !== 1 || !store.avThumb3D) {
-            await thumbnail3D.current.Stop();
-        } else if (page.thumbnailType === 1 && !thumbnail3D.current.isLoadingThumbnail) {
-            await thumbnail3D.current.LoadThumbnail(store.avThumb3D, canvasParentRef.current, set3DReady);
+    useEffect(() => {
+        let cancelled = false;
+        const set3DReadyIfActive = value => {
+            if (!cancelled) set3DReady(value);
+        };
+
+        async function run() {
+            if (store.isRendering || page.thumbnailType !== 1 || !store.avThumb3D) {
+                await thumbnail3D.current.Stop();
+            } else if (page.thumbnailType === 1 && !thumbnail3D.current.isLoadingThumbnail) {
+                await thumbnail3D.current.LoadThumbnail(store.avThumb3D, canvasParentRef.current, set3DReadyIfActive);
+            }
         }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, [store.avThumb3D, page.thumbnailType, canvasParentRef.current, store.isRendering]);
     
     useEffect(() => {
@@ -288,7 +312,6 @@ function AvatarEditor() {
                 <span style={{color:"inherit"}}>Explore the catalog to find more clothes!</span>
                 <ActionButton label="Get More" className={s.moreBut} buttonStyle={buttonStyles.newBuyButton}
                               onClick={() => {
-                                  const router = useRouter();
                                   router.push(getCatalogStyle() === catalogPageStyle.Legacy ? '/Catalog.aspx' : '/catalog').then();
                               }}/>
             </div>

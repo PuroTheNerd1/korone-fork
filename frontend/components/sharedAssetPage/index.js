@@ -56,8 +56,13 @@ const AssetPage = props => {
             assetId: assetId,
             name: name,
         });
-        if (typeof window !== 'undefined' && window.location.href !== expectedUrl) {
-            router.push(expectedUrl);
+        if (typeof window !== 'undefined') {
+            const currentPath = `${window.location.pathname}${window.location.search}`;
+            if (currentPath === expectedUrl || window.location.pathname === expectedUrl) {
+                return false;
+            }
+
+            router.replace(expectedUrl);
             return true;
         }
         return false;

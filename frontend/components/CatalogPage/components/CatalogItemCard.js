@@ -227,11 +227,11 @@ function CatalogItemCard(props) {
     const [longName, setLongName] = useState(true);
     const [limited, setLimited] = useState(true);
 
-    useEffect(async () => {
+    useEffect(() => {
         if (item.createdAt)
-            await setNew(IsISOWithinDays(item.createdAt, 3));
+            setNew(IsISOWithinDays(item.createdAt, 3));
         if (item.offsaleDeadline)
-            await setGoingOffSale(new Date() < new Date(item.offsaleDeadline))
+            setGoingOffSale(new Date() < new Date(item.offsaleDeadline))
         setLimited((item.itemRestrictions.includes("Limited") || item.itemRestrictions.includes("LimitedUnique")));
     }, [item]);
 

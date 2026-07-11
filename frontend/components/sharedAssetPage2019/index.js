@@ -45,11 +45,17 @@ const AssetPage = ({ idParamName, nameParamName = "" }) => {
     const [details, setDetails] = useState(null);
     const assetId = Number(router.query[idParamName]);
     
-    useEffect(async () => {
+    useEffect(() => {
         if (!assetId) return;
-        
-        if (!details || details.id !== assetId) {
+
+        let cancelled = false;
+
+        async function run() {
+            if (details && details.id === assetId) return;
+
             const newDetails = await getItemDetailsNew([assetId]);
+            if (cancelled) return;
+
             if (newDetails?.length > 0) {
                 setDetails(newDetails[0]);
                 
@@ -58,14 +64,23 @@ const AssetPage = ({ idParamName, nameParamName = "" }) => {
                     assetId: newDetails[0].id,
                     name: newDetails[0].name,
                 });
-                if (typeof window !== 'undefined' && window.location.href !== expectedUrl) {
-                    router.push(expectedUrl).then();
+                if (typeof window !== 'undefined') {
+                    const currentPath = `${window.location.pathname}${window.location.search}`;
+                    if (currentPath !== expectedUrl && window.location.pathname !== expectedUrl) {
+                        router.replace(expectedUrl).then();
+                    }
                 }
             } else {
                 console.warn("New details length is 0, returning..");
             }
         }
-    }, [assetId]);
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [assetId, details, router]);
     
     if (getCatalogPageStyle() === catalogPageStyle.Legacy)
         return <SharedAssetPage idParamName={idParamName} nameParamName={nameParamName} />

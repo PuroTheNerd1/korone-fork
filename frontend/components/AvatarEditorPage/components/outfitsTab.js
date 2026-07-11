@@ -307,16 +307,27 @@ function OutfitsTab() {
     const [renameOutfitModal, setRenameOutfitModal] = useState(false);
     
     
-    useEffect(async () => {
+    useEffect(() => {
         if (deb.current) return;
+        let cancelled = false;
         deb.current = true;
         store.setLoadingAvatar(false);
-        if (page.outfits.length === 0) {
-            setLoadingOutfits(true);
-            await page.LoadOutfits();
-            setLoadingOutfits(false);
+
+        async function run() {
+            if (page.outfits.length === 0) {
+                setLoadingOutfits(true);
+                await page.LoadOutfits();
+                if (!cancelled) setLoadingOutfits(false);
+            }
+            deb.current = false;
         }
-        deb.current = false;
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+            deb.current = false;
+        };
     }, []);
     
     return <div className={s.outfitsWrapper}>

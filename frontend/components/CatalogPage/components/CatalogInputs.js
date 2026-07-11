@@ -100,57 +100,70 @@ function CatalogInputs() {
     const [deb, setDeb] = useState(false);
 
     // do we make this useEffect listen to router changes?
-    useEffect(async () => {
-        await tick();
+    useEffect(() => {
+        let cancelled = false;
 
-        let creatorName = router.query['CreatorName'] ?? null;
-        let creatorType = router.query['CreatorType'] ?? null;
-        let category = router.query['Category'] ?? null;
-        let keyword = router.query['keyword'] ?? router.query['Keyword'] ?? null;
+        async function run() {
+            await tick();
+            if (cancelled) return;
 
-        let options = { ...store.options };
-        let creatorOpt = store.creator;
-        let creatorTypeOpt = store.creatorType;
-        let queryOpt = null;
+            let creatorName = router.query['CreatorName'] ?? null;
+            let creatorType = router.query['CreatorType'] ?? null;
+            let category = router.query['Category'] ?? null;
+            let keyword = router.query['keyword'] ?? router.query['Keyword'] ?? null;
 
-        if (creatorName && typeof creatorName === 'string') creatorOpt = creatorName;
-        if (creatorType) {
-            if (IsValidNum(creatorType)) {
-                creatorTypeOpt = Number.parseInt(creatorType);
-            } else if (typeof creatorType === 'string') {
-                switch (creatorType.toLowerCase()) {
-                    case "user": {
-                        creatorTypeOpt = 1;
-                        break;
-                    }
-                    case "group": {
-                        creatorTypeOpt = 2;
-                        break;
+            let options = { ...store.options };
+            let creatorOpt = store.creator;
+            let creatorTypeOpt = store.creatorType;
+            let queryOpt = null;
+
+            if (creatorName && typeof creatorName === 'string') creatorOpt = creatorName;
+            if (creatorType) {
+                if (IsValidNum(creatorType)) {
+                    creatorTypeOpt = Number.parseInt(creatorType);
+                } else if (typeof creatorType === 'string') {
+                    switch (creatorType.toLowerCase()) {
+                        case "user": {
+                            creatorTypeOpt = 1;
+                            break;
+                        }
+                        case "group": {
+                            creatorTypeOpt = 2;
+                            break;
+                        }
                     }
                 }
             }
-        }
-        if (category && IsValidNum(category)) {
-            options.category = Number.parseInt(category);
-            if (Number.parseInt(category) === 1) {
-                options.subCategory = 0;
+            if (category && IsValidNum(category)) {
+                options.category = Number.parseInt(category);
+                if (Number.parseInt(category) === 1) {
+                    options.subCategory = 0;
+                }
             }
-        }
-        if (keyword && typeof keyword === 'string' && keyword.trim().length > 0) {
-            queryOpt = keyword;
-            store.setSearchInput(keyword);
-        }
-        await store.setOptions(options);
-        await store.setCreator(creatorOpt);
-        await store.setCreatorType(creatorTypeOpt);
+            if (keyword && typeof keyword === 'string' && keyword.trim().length > 0) {
+                queryOpt = keyword;
+                store.setSearchInput(keyword);
+            }
+            store.setOptions(options);
+            store.setCreator(creatorOpt);
+            store.setCreatorType(creatorTypeOpt);
 
-        await store.RefreshCatalogItems(null, true, {
-            category: options.category,
-            subCategory: options.subCategory,
-            creator: creatorOpt,
-            creatorType: creatorTypeOpt,
-            query: queryOpt,
-        });
+            if (cancelled) return;
+
+            await store.RefreshCatalogItems(null, true, {
+                category: options.category,
+                subCategory: options.subCategory,
+                creator: creatorOpt,
+                creatorType: creatorTypeOpt,
+                query: queryOpt,
+            });
+        }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
     
     return <div className={`flex ${s.search}`}>

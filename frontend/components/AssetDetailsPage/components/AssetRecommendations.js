@@ -167,17 +167,30 @@ function AssetRecommendations() {
     const [recommendations, setRecommendations] = useState([]);
     const [loadingRecoms, setLoadingRecoms] = useState(false);
     
-    useEffect(async () => {
+    useEffect(() => {
         if (loadingRecoms) return;
+        let cancelled = false;
         setLoadingRecoms(true);
-        const recommend = await getRecommendations({ assetId: details.id, assetTypeId: details.assetType, limit: 10 });
-        if (!recommend || !Array.isArray(recommend?.data)) {
-            setRecommendations(null);
-            return;
+
+        async function run() {
+            const recommend = await getRecommendations({ assetId: details.id, assetTypeId: details.assetType, limit: 10 });
+            if (cancelled) return;
+
+            if (!recommend || !Array.isArray(recommend?.data)) {
+                setRecommendations(null);
+                setLoadingRecoms(false);
+                return;
+            }
+            setRecommendations(recommend.data);
+            await wait(0.25);
+            if (!cancelled) setLoadingRecoms(false);
         }
-        setRecommendations(recommend.data);
-        await wait(0.25);
-        setLoadingRecoms(false);
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, [details.id]);
     
     return <div className={s.recommendationsContainer}>

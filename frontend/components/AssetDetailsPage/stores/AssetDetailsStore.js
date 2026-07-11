@@ -36,47 +36,70 @@ const assetDetailsStore = createContainer(() => {
         }
     }
     
-    useEffect(async () => {
+    useEffect(() => {
         if (!details) return;
         if (auth.isPending) return;
+        let cancelled = false;
 
-        if (auth.userId) {
-            userOwnsItem({ userId: auth.userId, assetId: details.id })
-                .then(setOwned)
-                . catch(() => setOwned(false));
-            /** @type number[] */
-            getCollections({ userId: auth.userId })
-                .then(d => setCollectioned(d.map(d => d.Id).includes(details.id)));
+        async function run() {
+            if (auth.userId) {
+                userOwnsItem({ userId: auth.userId, assetId: details.id })
+                    .then(value => {
+                        if (!cancelled) setOwned(value);
+                    })
+                    . catch(() => {
+                        if (!cancelled) setOwned(false);
+                    });
+                /** @type number[] */
+                getCollections({ userId: auth.userId })
+                    .then(d => {
+                        if (!cancelled) setCollectioned(d.map(d => d.Id).includes(details.id));
+                    });
 
-            if (isResellable()) {
-                getResellableCopies({ assetId: details.id, userId: auth.userId })
-                    .then(d => setOwnedCopies(d?.data || []));
-            } else {
-                getOwnedCopies({ assetId: details.id, userId: auth.userId })
-                    .then(d => setOwnedCopies(d || []));
+                if (isResellable()) {
+                    getResellableCopies({ assetId: details.id, userId: auth.userId })
+                        .then(d => {
+                            if (!cancelled) setOwnedCopies(d?.data || []);
+                        });
+                } else {
+                    getOwnedCopies({ assetId: details.id, userId: auth.userId })
+                        .then(d => {
+                            if (!cancelled) setOwnedCopies(d || []);
+                        });
+                }
             }
+
+            if (!isLimited()) return;
+            getResaleData({ assetId: details.id }).then(value => {
+                if (!cancelled) setResaleData(value);
+            });
+
+            if (!isResellable()) return;
+            loadResellers(() => cancelled);
+            loadOwners(() => cancelled);
         }
-        
-        if (!isLimited()) return;
-        getResaleData({ assetId: details.id }).then(setResaleData);
-        
-        if (!isResellable()) return;
-        loadResellers();
-        loadOwners();
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, [details, auth.isPending, auth.userId]);
     
-    async function loadResellers() {
+    async function loadResellers(isCancelled = () => false) {
         let data = [];
         let cursor = '';
         // might have to be do while instead of while
-        while (cursor !== null) {
+        while (cursor !== null && !isCancelled()) {
             /** @type PekoraCollectionPaginated<ResellerData> */
             const resellData = (await getResellers({ assetId: details.id, cursor: cursor, limit: 100 })).data;
+            if (isCancelled()) return;
             if (!resellData || resellData.data.length === 0) {
                 cursor = null;
                 break;
             }
             const resellThumbs = await multiGetUserHeadshots2({ userIds: resellData.data.map(d => d.seller.id) });
+            if (isCancelled()) return;
             resellData.data.forEach(seller => {
                 let thumb = resellThumbs.find(d => d.targetId === seller.seller.id);
                 data.push({
@@ -87,20 +110,23 @@ const assetDetailsStore = createContainer(() => {
             });
             cursor = resellData.nextPageCursor;
         }
+        if (isCancelled()) return;
         setResellers(data);
     }
-    async function loadOwners() {
+    async function loadOwners(isCancelled = () => false) {
         let data = [];
         let cursor = '';
         // might have to be do while instead of while
-        while (cursor !== null) {
+        while (cursor !== null && !isCancelled()) {
             /** @type PekoraCollectionPaginated<OwnerEntry> */
             const ownerData = (await getCollectibleOwners({ assetId: details.id, cursor: cursor, limit: 50, sort: "Asc" }));
+            if (isCancelled()) return;
             if (ownerData.data.length === 0) {
                 cursor = null;
                 break;
             }
             const ownerThumbs = await multiGetUserHeadshots2({ userIds: ownerData.data.filter(d => d.owner?.id).map(d => d.owner.id) });
+            if (isCancelled()) return;
             ownerData.data.forEach(owner => {
                 let thumb = ownerThumbs.find(d => d.targetId === (owner?.owner?.id || 0));
                 data.push({
@@ -111,6 +137,7 @@ const assetDetailsStore = createContainer(() => {
             });
             cursor = ownerData.nextPageCursor;
         }
+        if (isCancelled()) return;
         setOwners(data);
     }
     

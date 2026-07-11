@@ -78,8 +78,19 @@ const CreateGame = props => {
     const [commentsEnabled, setCommentsEnabled] = useState('true');
     const [gameGenre, setGameGenre] = useState('All');
     
-    useEffect(async () => {
-        setGameName(`${auth.username}'s Place Number: ${await getUserCreatedPlaceCount({userId: auth.userId}) + 1}`);
+    useEffect(() => {
+        let cancelled = false;
+
+        async function run() {
+            const placeCount = await getUserCreatedPlaceCount({userId: auth.userId});
+            if (!cancelled) setGameName(`${auth.username}'s Place Number: ${placeCount + 1}`);
+        }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
     
     const [playableDevices, setPlayableDevices] = useState({

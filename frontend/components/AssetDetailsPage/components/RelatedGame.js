@@ -56,22 +56,35 @@ function RelatedGame() {
     const [placeName, setPlaceName] = useState("");
     const [gameUrl, setGameUrl] = useState("#");
     
-    useEffect(async () => {
-        switch (store.details.assetType) {
-            case AssetType.GamePass:
-                let universeInfo = await getGamePassRootPlace({ assetId: store.details.id });
-                if (!universeInfo) return;
-                setPlaceId(universeInfo.id);
-                setPlaceName(universeInfo.name);
-                setGameUrl(getGameUrl({ placeId: universeInfo.id, name: universeInfo.name }));
-                break;
-            case AssetType.Badge:
-                let badgeInfo = await getBadgeInfoByID({ badgeId: store.details.id });
-                setPlaceId(badgeInfo.awardingUniverse.rootPlaceId);
-                setPlaceName(badgeInfo.awardingUniverse.name);
-                setGameUrl(getGameUrl({ placeId: badgeInfo.awardingUniverse.rootPlaceId, name: badgeInfo.awardingUniverse.name }));
-                break;
+    useEffect(() => {
+        let cancelled = false;
+
+        async function run() {
+            switch (store.details.assetType) {
+                case AssetType.GamePass: {
+                    let universeInfo = await getGamePassRootPlace({ assetId: store.details.id });
+                    if (!universeInfo || cancelled) return;
+                    setPlaceId(universeInfo.id);
+                    setPlaceName(universeInfo.name);
+                    setGameUrl(getGameUrl({ placeId: universeInfo.id, name: universeInfo.name }));
+                    break;
+                }
+                case AssetType.Badge: {
+                    let badgeInfo = await getBadgeInfoByID({ badgeId: store.details.id });
+                    if (cancelled) return;
+                    setPlaceId(badgeInfo.awardingUniverse.rootPlaceId);
+                    setPlaceName(badgeInfo.awardingUniverse.name);
+                    setGameUrl(getGameUrl({ placeId: badgeInfo.awardingUniverse.rootPlaceId, name: badgeInfo.awardingUniverse.name }));
+                    break;
+                }
+            }
         }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, [store.details, store.details?.id]);
     
     if (!store.details || !placeId || placeId === 0) { console.log(`dd ${placeId} ff ${placeName}`); return null; }

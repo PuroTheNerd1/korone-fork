@@ -97,37 +97,64 @@ const Avatar = props => {
     const canvasParentRef = useRef(null);
     const [thumb3D, setThumb3D] = useState(new Thumbnail3DHandler());
     
-    useEffect(async () => {
-        let avatar = await getAvatar({ userId });
-        let assetIds = avatar.assets.map(d => d.id);
-        let assetRestrictions = await getAssetRestrictions(assetIds);
-        let avatarAssets = avatar.assets.map(asset => {
-            let restriction = assetRestrictions.find(d => d.assetId === asset.id);
-            return {
-                ...asset,
-                isLimited: restriction.isLimited,
-                isLimitedUnique: restriction.isLimitedUnique,
-            };
-        });
-        setAssets(avatarAssets);
-        setSelectedAssets(avatarAssets.slice(0, assetsLimit));
-        setAssetPage(1);
-        setAssetPages(Math.ceil(avatarAssets.length / assetsLimit));
+    useEffect(() => {
+        let cancelled = false;
+
+        async function run() {
+            let avatar = await getAvatar({ userId });
+            let assetIds = avatar.assets.map(d => d.id);
+            let assetRestrictions = await getAssetRestrictions(assetIds);
+            if (cancelled) return;
+
+            let avatarAssets = avatar.assets.map(asset => {
+                let restriction = assetRestrictions.find(d => d.assetId === asset.id);
+                return {
+                    ...asset,
+                    isLimited: restriction.isLimited,
+                    isLimitedUnique: restriction.isLimitedUnique,
+                };
+            });
+            setAssets(avatarAssets);
+            setSelectedAssets(avatarAssets.slice(0, assetsLimit));
+            setAssetPage(1);
+            setAssetPages(Math.ceil(avatarAssets.length / assetsLimit));
+        }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, [userId]);
     
-    useEffect(async () => {
-        if (thumbType === 1 && !store?.userAv3D?.camera) {
-            await thumb3D.Stop();
-            feedback.addFeedback("3D Render not available, please try again later", FeedbackType.ERROR);
-            setThumbType(0);
-            return;
+    useEffect(() => {
+        let cancelled = false;
+        const set3DReadyIfActive = value => {
+            if (!cancelled) set3DReady(value);
+        };
+
+        async function run() {
+            if (thumbType === 1 && !store?.userAv3D?.camera) {
+                await thumb3D.Stop();
+                if (cancelled) return;
+
+                feedback.addFeedback("3D Render not available, please try again later", FeedbackType.ERROR);
+                setThumbType(0);
+                return;
+            }
+
+            if (thumbType !== 1) {
+                await thumb3D.Stop();
+            } else if (thumbType === 1 && !thumb3D.isLoadingThumbnail) {
+                await thumb3D.LoadThumbnail(store.userAv3D, canvasParentRef.current, set3DReadyIfActive);
+            }
         }
-        
-        if (thumbType !== 1) {
-            await thumb3D.Stop();
-        } else if (thumbType === 1 && !thumb3D.isLoadingThumbnail) {
-            await thumb3D.LoadThumbnail(store.userAv3D, canvasParentRef.current, set3DReady);
-        }
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, [thumbType, store.userId, userId]);
     
     useEffect(() => {

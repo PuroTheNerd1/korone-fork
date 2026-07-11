@@ -432,13 +432,13 @@ function AssetDetailsPage({ itemDetails }) {
     // 767px or lower
     const isWindow767 = useWindowQuery("max-width: 767px");
     
-    useEffect(async () => {
-        await store.setDetails(itemDetails);
-        await setNew(IsISOWithinDays(itemDetails.createdAt, 3));
+    useEffect(() => {
+        store.setDetails(itemDetails);
+        setNew(IsISOWithinDays(itemDetails.createdAt, 3));
         if (!store.details || !store.resellers || deb.current) return;
 
         let purchaseInfo = store.getPurchaseInfo();
-        await setDetailOptions([
+        setDetailOptions([
             (itemDetails.itemRestrictions.includes("Limited") || itemDetails.itemRestrictions.includes("LimitedUnique")) && !itemDetails.isForSale && store.resellers.length > 0 && (purchaseInfo.sellerId === auth.userId) ? {
                 label: "Best Price",
                 field: <div className={s.priceWrapper}>

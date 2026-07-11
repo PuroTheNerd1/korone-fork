@@ -221,15 +221,24 @@ const About = props => {
   const url = (creatorType === 'User' || creatorType === 1) ? '/User.aspx?ID=' + creatorId : '/My/Groups.aspx?gid=' + creatorId;
   const showDropdown = store.details.creatorType === 'User' && store.details.creatorTargetId === auth.userId;
 
-  useEffect(async () => {
-    try {
-      multiGetPlaceDetails({ placeIds: [placeId] }).then(async data => {
-        let uniId = await data[0].universeId;
-        setUniverseId(uniId);
-      }, () => { })
-    } catch (error) {
-      console.error('Could not get universe id! Error: ' + error);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      try {
+        const data = await multiGetPlaceDetails({ placeIds: [placeId] });
+        let uniId = data[0].universeId;
+        if (!cancelled) setUniverseId(uniId);
+      } catch (error) {
+        console.error('Could not get universe id! Error: ' + error);
+      }
     }
+
+    run().then();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const dropdownOptions = [

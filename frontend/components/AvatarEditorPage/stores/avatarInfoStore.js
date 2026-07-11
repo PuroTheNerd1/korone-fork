@@ -65,11 +65,16 @@ const AvatarInfoStore = createContainer(() => {
         });
     }
     
-    async function ReloadAvatar(){
+    async function ReloadAvatar(isCancelled = () => false){
         setLoadingAvatar(true);
         setAvThumb(null);
-        setAvRules(await getRules());
+        const rules = await getRules();
+        if (isCancelled()) return;
+
+        setAvRules(rules);
         let avatar = await getMyAvatar();
+        if (isCancelled()) return;
+
         setWearingAssets(avatar.assets.map(v => {
             return {
                 name: v.name,
@@ -109,60 +114,90 @@ const AvatarInfoStore = createContainer(() => {
         setIsRendering(true);
     }
     
-    useEffect(ReloadAvatar, []);
-    
-    useEffect(async () => {
-        if (debo.current || !isRendering || avThumb != null || avThumb3D != null) return;
-        debo.current = true;
-        
-        let stopwatch = new Stopwatch();
-        stopwatch.Start();
-        let attempts = 0;
-        while (avThumb == null && attempts <= 10) {
-            await wait(0.2);
-            let thumbnail = await multiGetUserThumbnails({userIds: [auth.userId]})
-                .then(result => result[0]);
-            if (thumbnail.state === "Completed" && typeof thumbnail.imageUrl === "string") {
-                setAvThumb(thumbnail.imageUrl);
-                break;
-            } else {
-                console.warn("User thumbnail has not completed rendering yet.");
-            }
-            attempts++;
+    useEffect(() => {
+        let cancelled = false;
 
+        async function run() {
+            await ReloadAvatar(() => cancelled);
         }
-        stopwatch.Stop();
-        if (attempts > 10 && avThumb == null)
-            feedback.addFeedback("Could not get new avatar render. Please try again later.", FeedbackType.ERROR);
-        console.log(`Got avatar render in ${stopwatch.ElapsedMilliseconds()}ms, in ${attempts} attempts.`);
-        
-        // Separated because 3D renders usually take longer
-        attempts = 0;
-        stopwatch = new Stopwatch();
-        stopwatch.Start();
-        while (avThumb3D == null && attempts <= 10) {
-            let thumbnail = await multiGetUserThumbnails3D({userIds: [auth.userId]})
-                .then(result => result[0]);
-            if (thumbnail.state === "Completed" && typeof thumbnail.imageUrl === "string") {
-                /** @type Thumbnail3D */
-                let thumb = (await request("GET", thumbnail.imageUrl)).data;
-                if (thumb?.textures?.length && thumb.textures.length > 0) {
-                    setAvThumb3D(thumb);
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+    
+    useEffect(() => {
+        if (debo.current || !isRendering || avThumb != null || avThumb3D != null) return;
+        let cancelled = false;
+        debo.current = true;
+
+        async function run() {
+            let stopwatch = new Stopwatch();
+            stopwatch.Start();
+            let attempts = 0;
+            while (!cancelled && avThumb == null && attempts <= 10) {
+                await wait(0.2);
+                if (cancelled) return;
+
+                let thumbnail = await multiGetUserThumbnails({userIds: [auth.userId]})
+                    .then(result => result[0]);
+                if (cancelled) return;
+
+                if (thumbnail.state === "Completed" && typeof thumbnail.imageUrl === "string") {
+                    setAvThumb(thumbnail.imageUrl);
                     break;
+                } else {
+                    console.warn("User thumbnail has not completed rendering yet.");
                 }
-            } else {
-                console.warn("User thumbnail 3D has not completed rendering yet.");
+                attempts++;
+
             }
-            attempts++;
-            await wait(1);
+            stopwatch.Stop();
+            if (!cancelled && attempts > 10 && avThumb == null)
+                feedback.addFeedback("Could not get new avatar render. Please try again later.", FeedbackType.ERROR);
+            console.log(`Got avatar render in ${stopwatch.ElapsedMilliseconds()}ms, in ${attempts} attempts.`);
+
+            // Separated because 3D renders usually take longer
+            attempts = 0;
+            stopwatch = new Stopwatch();
+            stopwatch.Start();
+            while (!cancelled && avThumb3D == null && attempts <= 10) {
+                let thumbnail = await multiGetUserThumbnails3D({userIds: [auth.userId]})
+                    .then(result => result[0]);
+                if (cancelled) return;
+
+                if (thumbnail.state === "Completed" && typeof thumbnail.imageUrl === "string") {
+                    /** @type Thumbnail3D */
+                    let thumb = (await request("GET", thumbnail.imageUrl)).data;
+                    if (cancelled) return;
+
+                    if (thumb?.textures?.length && thumb.textures.length > 0) {
+                        setAvThumb3D(thumb);
+                        break;
+                    }
+                } else {
+                    console.warn("User thumbnail 3D has not completed rendering yet.");
+                }
+                attempts++;
+                await wait(1);
+            }
+            stopwatch.Stop();
+            if (!cancelled && attempts > 10 && avThumb3D == null)
+                feedback.addFeedback("Could not get new avatar render. Please try again later.", FeedbackType.ERROR);
+            console.log(`Got 3D avatar render in ${stopwatch.ElapsedMilliseconds()}ms, in ${attempts} attempts.`);
+
+            if (!cancelled) setIsRendering(false);
+            debo.current = false;
         }
-        stopwatch.Stop();
-        if (attempts > 10 && avThumb3D == null)
-            feedback.addFeedback("Could not get new avatar render. Please try again later.", FeedbackType.ERROR);
-        console.log(`Got 3D avatar render in ${stopwatch.ElapsedMilliseconds()}ms, in ${attempts} attempts.`);
-        
-        setIsRendering(false);
-        debo.current = false;
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+            debo.current = false;
+        };
     }, [isRendering]);
     
     useEffect(() => {

@@ -60,19 +60,28 @@ const AssetDetailsModalStore = createContainer(() => {
         try { prefetchCheckoutTurnstile(); } catch (e) {}
     }, [isBuyModalOpen, buyingUIAD]);
     
-    useEffect(async () => {
+    useEffect(() => {
         if (delistingUAID === 0 || isDelisting) return;
+        let cancelled = false;
         setDelisting(true);
-        
-        try {
-            await takeResellableAssetOffSale({ assetId: store.details.id, userAssetId: delistingUAID });
-            feedback.addFeedback(`Delisted UAID ${delistingUAID}`);
-        } catch (e) {
-            feedback.addFeedback(e.message, FeedbackType.ERROR);
+
+        async function run() {
+            try {
+                await takeResellableAssetOffSale({ assetId: store.details.id, userAssetId: delistingUAID });
+                if (!cancelled) feedback.addFeedback(`Delisted UAID ${delistingUAID}`);
+            } catch (e) {
+                if (!cancelled) feedback.addFeedback(e.message, FeedbackType.ERROR);
+            }
+
+            await wait(3);
+            if (!cancelled) window.location.reload();
         }
-        
-        await wait(3);
-        window.location.reload();
+
+        run().then();
+
+        return () => {
+            cancelled = true;
+        };
     }, [delistingUAID]);
     
     /**
