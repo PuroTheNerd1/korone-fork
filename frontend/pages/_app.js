@@ -9,7 +9,7 @@ import Head from 'next/head';
 import LoginModalStore from '../stores/loginModal';
 import AuthenticationStore from '../stores/authentication';
 import NavigationStore from '../stores/navigation';
-import { getTheme, getThemeColor, themeType } from '../services/theme';
+import { getTheme, getThemeColor, themeType, themeFont } from '../services/theme';
 import MainWrapper from '../components/mainWrapper';
 import ThumbnailStore from "../stores/thumbnailStore";
 import FeedbackStore from "../stores/feedback";
@@ -64,10 +64,11 @@ function RobloxApp({Component, pageProps}) {
 
         (async () => {
             const themeColor = getThemeColor();
-            const { ChangeVarsForTheme, ChangeVarsForThemeColor } = await import('../lib/ThemeUtil');
+            const { ChangeVarsForTheme, ChangeVarsForThemeColor, ChangeVarsForThemeFont } = await import('../lib/ThemeUtil');
 
             ChangeVarsForTheme(theme);
             ChangeVarsForThemeColor(themeColor);
+            ChangeVarsForThemeFont(themeFont.ssp);
         })();
     }, [pageProps]);
 
