@@ -108,8 +108,8 @@ const useStyles = createUseStyles({
         borderBottom: "1px solid #e3e3e3",
         position: "relative",
         "& h2": {
-            fontSize: 32,
-            fontWeight: 800,
+            fontSize: 30,
+            fontWeight: 400,
             lineHeight: "1em",
             padding: "5px 0",
             margin: 0,
