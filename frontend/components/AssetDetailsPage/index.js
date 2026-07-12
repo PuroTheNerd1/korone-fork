@@ -135,7 +135,6 @@ const useStyles = createUseStyles({
         whiteSpace: "pre-wrap",
         wordWrap: "break-word",
         width: "calc(100% - 120px)",
-        fontFamily: 'HCo Gotham SSm,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif',
         "@media(max-width: 767px)": {
             width: "100%",
             marginTop: 12,

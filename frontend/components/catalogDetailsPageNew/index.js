@@ -48,8 +48,8 @@ const useStyles = createUseStyles({
     borderBottom: '1px solid #e3e3e3',
     width: '100%',
     '& h2': {
-      fontSize: '32px',
-      fontWeight: 800,
+      fontSize: '30px',
+      fontWeight: 400,
       textOverflow: 'ellipsis',
       overflow: 'hidden',
       padding: '5px 0',
