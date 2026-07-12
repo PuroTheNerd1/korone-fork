@@ -139,8 +139,8 @@ const useStyles = createUseStyles({
     },
     recommendationsHeaderContainer: {
         "& h3": {
-            fontSize: 20,
-            fontWeight: 700,
+            fontSize: 24,
+            fontWeight: 300,
             paddingBottom: 5,
         },
     },
