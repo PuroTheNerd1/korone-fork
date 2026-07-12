@@ -44,6 +44,7 @@ public static class RobloxSessionCookieWriter
             Secure = false,
             Expires = DateTimeOffset.Now.Add(lifetime ?? TimeSpan.FromDays(14)),
             IsEssential = true,
+            HttpOnly = true,
             Path = "/",
             SameSite = SameSiteMode.Lax,
         };

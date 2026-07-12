@@ -19,6 +19,7 @@ using Roblox.Models.Db;
 using DSharpPlus;
 using Roblox.Logging;
 using DSharpPlus.Entities;
+using Roblox.Web.Infrastructure.Metadata;
 
 namespace Roblox.Website.Controllers;
 
@@ -468,6 +469,8 @@ public class WebController : ControllerBase
     }
 
     [HttpPost("game/get-join-script")]
+    [RequireRobloxSession]
+    [RequireRobloxCsrf]
     public async Task<dynamic> GetJoinScript(long placeId)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -477,10 +480,11 @@ public class WebController : ControllerBase
         var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] { placeId })).First();
         if (assetInfo.moderationStatus != ModerationStatus.ReviewApproved || assetInfo.typeId != (int)Models.Assets.Type.Place)
             throw new BadRequestException(1, "Place is not active");
-        var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{PUPPYSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
+        var negotiationTicket = await services.sessionNegotiationTickets.IssueAsync(PUPPYSECURITY!);
+        var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{negotiationTicket}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
             @$"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx 
-            --authenticationTicket {PUPPYSECURITY} 
+            --authenticationTicket {negotiationTicket} 
             --joinScriptUrl {Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true";
         return new
         {
@@ -491,6 +495,8 @@ public class WebController : ControllerBase
     }
 
     [HttpPost("game/get-join-script-fromjobid")]
+    [RequireRobloxSession]
+    [RequireRobloxCsrf]
     public async Task<dynamic> GetJoinScriptFromJobId(long placeId, string jobId)
     {
         FeatureFlags.FeatureCheck(FeatureFlag.GamesEnabled);
@@ -502,9 +508,10 @@ public class WebController : ControllerBase
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
         var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] { placeId })).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-        var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{PUPPYSECURITY}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
+        var negotiationTicket = await services.sessionNegotiationTickets.IssueAsync(PUPPYSECURITY!);
+        var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{negotiationTicket}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
-            $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {PUPPYSECURITY} --joinScriptUrl {Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true";
+            $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {negotiationTicket} --joinScriptUrl {Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true";
         return new
         {
             joinScriptUrl = bootstrapperArgs,

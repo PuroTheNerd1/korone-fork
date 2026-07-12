@@ -39,6 +39,7 @@ public class RobloxServiceAccessor : IDisposable
     private AbuseReportService? _abuseReport;
     private EconomyService? _economy;
     private PurchaseAttestationService? _purchaseAttestation;
+    private SessionNegotiationTicketService? _sessionNegotiationTickets;
     private CooldownService? _cooldown;
     private FilterService? _filter;
     private ChatService? _chat;
@@ -84,6 +85,7 @@ public class RobloxServiceAccessor : IDisposable
     public AbuseReportService abuseReport => GetService(ref _abuseReport);
     public EconomyService economy => GetService(ref _economy);
     public PurchaseAttestationService purchaseAttestation => GetService(ref _purchaseAttestation);
+    public SessionNegotiationTicketService sessionNegotiationTickets => GetService(ref _sessionNegotiationTickets);
     public CooldownService cooldown => GetService(ref _cooldown);
     public FilterService filter => GetService(ref _filter);
     public ChatService chat => GetService(ref _chat);

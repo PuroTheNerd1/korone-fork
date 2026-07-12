@@ -21,6 +21,7 @@ public class RobloxSessionCookieWriterTests
             var cookies = GetSetCookies(context);
             Assert.Contains(cookies, cookie => cookie.StartsWith(".ROBLOSECURITY=session-token;", StringComparison.Ordinal));
             Assert.All(cookies, cookie => Assert.Contains("domain=.pekora.zip", cookie, StringComparison.OrdinalIgnoreCase));
+            Assert.All(cookies, cookie => Assert.Contains("httponly", cookie, StringComparison.OrdinalIgnoreCase));
         }
         finally
         {

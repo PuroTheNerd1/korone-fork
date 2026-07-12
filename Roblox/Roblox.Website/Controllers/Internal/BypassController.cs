@@ -23,6 +23,7 @@ using MVC = Microsoft.AspNetCore.Mvc;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
+using Roblox.Web.Infrastructure.Metadata;
 
 namespace Roblox.Website.Controllers
 {
@@ -311,12 +312,20 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpGetBypass("login/negotiate.ashx"), HttpGetBypass("login/negotiateasync.ashx"), HttpPostBypass("login/negotiate.ashx")]
-        public void Negotiate([Required, FromQuery] string suggest)
+        [RequireRobloxClient]
+        public async Task<IActionResult> Negotiate([FromQuery] string? suggest)
         {
+            var sessionToken = await services.sessionNegotiationTickets.ConsumeAsync(suggest);
+            if (sessionToken == null)
+            {
+                return Unauthorized();
+            }
+
             Roblox.Web.Infrastructure.Auth.RobloxSessionCookieWriter.AppendSessionCookiesForToken(
                 HttpContext,
-                suggest,
+                sessionToken,
                 TimeSpan.FromDays(364));
+            return Ok();
         }
 
         [HttpPostBypass("game/validate-machine")]
