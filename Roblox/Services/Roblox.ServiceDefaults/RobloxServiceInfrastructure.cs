@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Roblox.Rendering;
 
 namespace Roblox.ServiceDefaults;
 
@@ -53,5 +54,13 @@ public static class RobloxServiceInfrastructure
         Roblox.Configuration.R2BucketName = configuration["CloudflareR2:BucketName"] ?? Roblox.Configuration.R2BucketName ?? string.Empty;
     
         Roblox.Configuration.ArbiterAuthorization = configuration["ArbiterAuthorization"] ?? Roblox.Configuration.ArbiterAuthorization ?? string.Empty;
+        
+        var renderBaseUrl = configuration["Render:BaseUrl"] ?? $"https://arbiter.{Roblox.Configuration.ShortBaseUrl}";
+        if (!string.IsNullOrWhiteSpace(renderBaseUrl))
+        {
+            RenderHttpClient.Configure(
+                renderBaseUrl,
+                Roblox.Configuration.ArbiterAuthorization);
+        }
     }
 }
