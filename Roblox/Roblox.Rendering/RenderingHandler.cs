@@ -29,8 +29,11 @@ public static class RenderingHandler
     { Kind = RenderKind.Animation, CharacterAppearanceUrl = characterAppearanceUrl, AnimationUrl = animationUrl });
     public static Task<string> RequestPackageRender(string assetUrls) => SendAsync(new RenderRequest { Kind = RenderKind.Package, AssetUrls = assetUrls });
     public static Task<string> RequestBodyPartRender(string assetUrl) => SendAsync(new RenderRequest { Kind = RenderKind.BodyPart, AssetUrl = assetUrl });
+    public static Task<string> RequestPlayerThumbnail(long userId, AvatarRigType avatarRigType, CancellationToken? cancellationToken = null) =>
+        SendAsync(new RenderRequest { Kind = RenderKind.Avatar, UserId = userId, AvatarRigType = avatarRigType, Width = 840, Height = 840 }, cancellationToken);
+
     public static Task<string> RequestPlayerThumbnail(long userId, CancellationToken? cancellationToken = null) =>
-        SendAsync(new RenderRequest { Kind = RenderKind.Avatar, UserId = userId, Width = 840, Height = 840 }, cancellationToken);
+        RequestPlayerThumbnail(userId, AvatarRigType.R15, cancellationToken);
     public static Task<string> RequestPlayerThumbnail3D(long userId, CancellationToken? cancellationToken = null) =>
         SendAsync(new RenderRequest { Kind = RenderKind.Avatar3D, UserId = userId, Width = 352, Height = 352 }, cancellationToken);
     public static Task<string> RequestHeadshotThumbnail(long userId, CancellationToken? cancellationToken = null) =>

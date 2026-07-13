@@ -28,11 +28,19 @@ public enum RenderKind
     HatConversion,
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum AvatarRigType
+{
+    R6,
+    R15,
+}
+
 public sealed class RenderRequest
 {
     public RenderKind Kind { get; set; }
     public long? AssetId { get; set; }
     public long? UserId { get; set; }
+    public AvatarRigType? AvatarRigType { get; set; }
     public int? AssetTypeId { get; set; }
     public long? ContentId { get; set; }
     public int Width { get; set; } = 420;

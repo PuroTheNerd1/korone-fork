@@ -51,6 +51,7 @@ public sealed class RenderScriptCatalog : IRenderScriptCatalog
         var format = request.Kind == RenderKind.Avatar3D ? "OBJ" : "PNG";
         var type = request.Kind switch
         {
+            RenderKind.Avatar when request.AvatarRigType == AvatarRigType.R6 => "Avatar",
             RenderKind.Avatar or RenderKind.Avatar3D => "Avatar_R15_Action",
             RenderKind.AvatarHeadshot => "Closeup",
             RenderKind.Asset or RenderKind.Model => "Model",
@@ -70,6 +71,7 @@ public sealed class RenderScriptCatalog : IRenderScriptCatalog
         };
         object?[] arguments = request.Kind switch
         {
+            RenderKind.Avatar when request.AvatarRigType == AvatarRigType.R6 => [appearanceUrl, baseUrl, "PNG", request.Width, request.Height],
             RenderKind.Avatar or RenderKind.Avatar3D => [baseUrl, appearanceUrl, format, request.Kind == RenderKind.Avatar3D ? 352 : request.Width, request.Kind == RenderKind.Avatar3D ? 352 : request.Height, true, 30, 100, 0, 0],
             RenderKind.AvatarHeadshot => [baseUrl, appearanceUrl, "PNG", request.Width, request.Height, true, 40, 60, 0, 0],
             RenderKind.Texture => [request.AssetId ?? 0, baseUrl, "PNG", request.Width, request.Height, true, 0, 0, 0, 0],

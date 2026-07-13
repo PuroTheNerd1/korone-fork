@@ -976,7 +976,8 @@ public class AvatarService : ServiceBase, IService {
         cancellation.CancelAfter(TimeSpan.FromMinutes(2));
 
         var headshotTask = RenderingHandler.RequestHeadshotThumbnail(userId, cancellation.Token);
-        var thumbnailTask = RenderingHandler.RequestPlayerThumbnail(userId, cancellation.Token);
+        var renderRigType = avatarType == AvatarType.R6 ? AvatarRigType.R6 : AvatarRigType.R15;
+        var thumbnailTask = RenderingHandler.RequestPlayerThumbnail(userId, renderRigType, cancellation.Token);
         var thumbnail3DTask = RenderingHandler.RequestPlayerThumbnail3D(userId, cancellation.Token); // Start 3D render early
 
         try

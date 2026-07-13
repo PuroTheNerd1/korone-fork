@@ -11,7 +11,15 @@ public static class CommandHandler
     }
 
     public static Task<Stream> RequestPlayerThumbnail(AvatarData data, CancellationToken? cancellationToken = null) =>
-        SendAsync(new RenderRequest { Kind = RenderKind.Avatar, UserId = data.userId, Avatar = data }, cancellationToken);
+        SendAsync(new RenderRequest
+        {
+            Kind = RenderKind.Avatar,
+            UserId = data.userId,
+            Avatar = data,
+            AvatarRigType = string.Equals(data.playerAvatarType, "R6", StringComparison.OrdinalIgnoreCase)
+                ? AvatarRigType.R6
+                : AvatarRigType.R15,
+        }, cancellationToken);
 
     public static Task<Stream> RequestPlayerHeadshot(AvatarData data, CancellationToken? cancellationToken = null) =>
         SendAsync(new RenderRequest { Kind = RenderKind.AvatarHeadshot, UserId = data.userId, Avatar = data }, cancellationToken);

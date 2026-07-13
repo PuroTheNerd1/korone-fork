@@ -43,6 +43,20 @@ public sealed class RenderHttpClientTests
         Assert.Equal(HttpStatusCode.TooManyRequests, exception.StatusCode); Assert.Contains("queue full", exception.Message);
     }
 
+    [Fact]
+    public async Task PlayerThumbnail_PropagatesR6RigType()
+    {
+        var handler = new RecordingHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(new RenderResult
+            { JobId = Guid.NewGuid(), ContentType = "image/png", Data = "cG5n", DependencyUrls = [] }), Encoding.UTF8, "application/json"),
+        });
+        RenderHttpClient.Configure(new HttpClient(handler) { BaseAddress = new Uri("http://arbiter.test/") });
+        _ = await RenderingHandler.RequestPlayerThumbnail(123, AvatarRigType.R6, TestContext.Current.CancellationToken);
+        var request = JsonSerializer.Deserialize<RenderRequest>(handler.Body!, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.NotNull(request); Assert.Equal(AvatarRigType.R6, request.AvatarRigType);
+    }
+
     private sealed class RecordingHandler(Func<HttpRequestMessage, HttpResponseMessage> response) : HttpMessageHandler
     {
         public HttpRequestMessage? Request { get; private set; }

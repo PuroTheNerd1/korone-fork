@@ -31,6 +31,52 @@ public sealed class RenderScriptCatalogTests
         Assert.Empty(execution.Arguments);
     }
 
+    [Fact]
+    public void R6BodyShot_UsesAvatarTypeAndR6ArgumentOrder()
+    {
+        var execution = CreateCatalog().Create(new RenderRequest
+        {
+            Kind = RenderKind.Avatar,
+            UserId = 456,
+            AvatarRigType = AvatarRigType.R6,
+            CharacterAppearanceUrl = "https://example.test/avatar-r6",
+            Width = 840,
+            Height = 840,
+        });
+        using var document = JsonDocument.Parse(execution.Script);
+        var settings = document.RootElement.GetProperty("Settings");
+        Assert.Equal("Avatar", settings.GetProperty("Type").GetString());
+        var arguments = settings.GetProperty("Arguments");
+        Assert.Equal("https://example.test/avatar-r6", arguments[0].GetString());
+        Assert.Equal("https://example.test", arguments[1].GetString());
+        Assert.Equal("PNG", arguments[2].GetString());
+        Assert.Equal(840, arguments[3].GetInt32());
+        Assert.Equal(840, arguments[4].GetInt32());
+        Assert.Equal(5, arguments.GetArrayLength());
+    }
+
+    [Fact]
+    public void R15BodyShot_UsesActionTypeAndR15ArgumentOrder()
+    {
+        var execution = CreateCatalog().Create(new RenderRequest
+        {
+            Kind = RenderKind.Avatar,
+            UserId = 456,
+            AvatarRigType = AvatarRigType.R15,
+            CharacterAppearanceUrl = "https://example.test/avatar-r15",
+            Width = 840,
+            Height = 840,
+        });
+        using var document = JsonDocument.Parse(execution.Script);
+        var settings = document.RootElement.GetProperty("Settings");
+        Assert.Equal("Avatar_R15_Action", settings.GetProperty("Type").GetString());
+        var arguments = settings.GetProperty("Arguments");
+        Assert.Equal("https://example.test", arguments[0].GetString());
+        Assert.Equal("https://example.test/avatar-r15", arguments[1].GetString());
+        Assert.Equal("PNG", arguments[2].GetString());
+        Assert.Equal(10, arguments.GetArrayLength());
+    }
+
     private static RenderScriptCatalog CreateCatalog() => new(Options.Create(new ArbiterOptions
     { BaseUrl = "https://example.test", Render = new ArbiterRenderOptions { DefaultYear = 2020 } }));
 }
