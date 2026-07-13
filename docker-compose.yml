@@ -12,12 +12,11 @@ x-dotnet-dev-env: &dotnet-dev-env
   CdnBaseUrl: "http://localhost:5200"
   IsCdnEnabled: "false"
   Authorization: "KoroneInternal-dev-secret"
+  ArbiterAuthorization: "KoroneInternal-dev-secret"
   RccAuthorization: "KoroneRcc-dev-secret"
   Jwt__Sessions: "KoroneSessions-dev-secret"
   BotAuthorization: "KoroneBot-dev-secret"
-  Render__BaseUrl: "ws://game-server:3189"
-  Render__Authorization: "KoroneRender-dev-secret"
-  Render__RendererBaseUrl: "http://game-renderer:3043"
+  Render__BaseUrl: "http://host.docker.internal:3521"
   AssetValidation__BaseUrl: "http://asset-validation:4300"
   AssetValidation__Authorization: "KoroneAssetValidation-dev-secret"
   Directories__Public: "/srv/app/api/public/"
@@ -322,63 +321,6 @@ services:
     environment:
       <<: *dotnet-dev-env
       OwnerUserId__0: "1"
-
-  game-renderer:
-    build:
-      context: ./game-renderer
-      dockerfile: Dockerfile
-    pull_policy: never
-    ports:
-      - "127.0.0.1:3043:3043"
-      - "127.0.0.1:16612:16612"
-    volumes:
-      - ./RCCService:/app/RCCService
-    environment:
-      WINEPREFIX: /root/.wine
-      WINEARCH: win64
-      DISPLAY: ":99"
-      BASE_URL: "http://api-proxy:5200/"
-      RCC_URL: "http://localhost"
-      DEBUG: "true"
-      PORT_PROCESS: "3043"
-      PORT_RCC_PLAYER: "1621,5621,8621,8622,8624,8629,9000,9002,10000,11000,12000"
-      PORT_RCC_IMAGE: "2621,2622,4853,5121,5231"
-      PORT_RCC_PLACE: "3621,3622,8495,9400,9500"
-      PORT_RCC_CATALOG: "4621,7621,9621,4324,5421"
-      PATH_RCC_SERVICE: "./RCCService/RCCService.exe"
-    networks:
-      - economy
-    depends_on:
-      api-proxy:
-        condition: service_started
-    restart: unless-stopped
-
-  game-server:
-    build:
-      context: ./game-server
-      dockerfile: Dockerfile
-    pull_policy: never
-    ports:
-      - "127.0.0.1:3189:3189"
-    volumes:
-      - ./RCCService:/app/RCCService
-    environment:
-      WINEPREFIX: /root/.wine
-      WINEARCH: win64
-      DISPLAY: ":99"
-      AUTHORIZATION: "KoroneRender-dev-secret"
-      BASE_URL: "http://api-proxy:5200"
-      RCC_PORT: "1234"
-      PORT: "5800"
-      THUMBNAIL_WEBSOCKET_PORT: "3189"
-      WEBSITE_BOT_AUTH: "KoroneBot-dev-secret"
-      DOCKER_DISABLED: "false"
-    networks:
-      - economy
-    depends_on:
-      api-proxy:
-        condition: service_started
-    restart: unless-stopped
 
   asset-validation:
     image: golang:1.25-alpine

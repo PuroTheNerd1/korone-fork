@@ -4,6 +4,7 @@ using System.Reflection;
 using Korone.RccServiceArbiter.Controllers;
 using Korone.RccServiceArbiter.Models;
 using Korone.RccServiceArbiter.Processes;
+using Korone.RccServiceArbiter.Rendering;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Roblox.Web.Infrastructure.Metadata;
+using Roblox.Rendering;
 using Xunit;
 
 namespace Korone.RccServiceArbiter.Tests;
@@ -120,6 +122,68 @@ public sealed class ArbiterRouteTests
         Assert.Equal(HttpStatusCode.OK, stats.StatusCode);
     }
 
+    [Fact]
+    public void RenderController_DeclaresInternalServiceMetadata()
+    {
+        Assert.NotNull(typeof(RenderController).GetCustomAttribute<InternalServiceOnlyAttribute>());
+    }
+
+    [Fact]
+    public void RenderRouteMatrix_CoversEveryRenderControllerRoute()
+    {
+        var expected = new HashSet<(string Method, string Path)> { ("POST", "/render"), ("GET", "/render/statistics") };
+        var declared = typeof(RenderController).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+            .SelectMany(method => method.GetCustomAttributes<HttpMethodAttribute>())
+            .SelectMany(attribute => attribute.HttpMethods.Select(method => (method.ToUpperInvariant(), NormalizeRoute(attribute.Template!))))
+            .ToHashSet();
+        Assert.Empty(declared.Except(expected)); Assert.Empty(expected.Except(declared));
+    }
+
+    [Theory]
+    [InlineData("POST", "/render")]
+    [InlineData("GET", "/render/statistics")]
+    public async Task RenderRoutes_RejectAnonymousRequests(string method, string path)
+    {
+        await using var factory = new ArbiterFactory();
+        using var client = factory.CreateClient();
+        using var request = new HttpRequestMessage(new HttpMethod(method), path);
+        if (method == "POST") request.Content = JsonContent.Create(new RenderRequest { Kind = RenderKind.Asset, AssetId = 1 });
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(request)).StatusCode);
+    }
+
+    [Theory]
+    [InlineData(RenderKind.Avatar)] [InlineData(RenderKind.AvatarHeadshot)] [InlineData(RenderKind.Avatar3D)]
+    [InlineData(RenderKind.Asset)] [InlineData(RenderKind.Texture)] [InlineData(RenderKind.TeeShirt)]
+    [InlineData(RenderKind.Hat)] [InlineData(RenderKind.Head)] [InlineData(RenderKind.Mesh)]
+    [InlineData(RenderKind.MeshPart)] [InlineData(RenderKind.Model)] [InlineData(RenderKind.Package)]
+    [InlineData(RenderKind.BodyPart)] [InlineData(RenderKind.Clothing)] [InlineData(RenderKind.Place)]
+    [InlineData(RenderKind.Animation)] [InlineData(RenderKind.AnimationSilhouette)]
+    [InlineData(RenderKind.PlaceConversion)] [InlineData(RenderKind.HatConversion)]
+    public async Task Render_AuthorizedRequest_BindsEveryKindAndReturnsStableShape(RenderKind kind)
+    {
+        await using var factory = new ArbiterFactory();
+        using var client = factory.CreateAuthorizedClient();
+        var response = await client.PostAsJsonAsync("/render", new RenderRequest { Kind = kind, AssetId = 123, UserId = 456, InputData = "YQ==" });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var payload = await response.Content.ReadFromJsonAsync<RenderResult>();
+        Assert.NotNull(payload); Assert.NotEqual(Guid.Empty, payload.JobId); Assert.Equal("image/png", payload.ContentType);
+        Assert.Equal("cG5n", payload.Data); Assert.NotNull(payload.DependencyUrls);
+    }
+
+    [Theory]
+    [InlineData(-400, HttpStatusCode.BadRequest)]
+    [InlineData(-429, HttpStatusCode.TooManyRequests)]
+    [InlineData(-502, HttpStatusCode.BadGateway)]
+    [InlineData(-504, HttpStatusCode.GatewayTimeout)]
+    public async Task Render_MapsFailuresToStableErrorShape(long assetId, HttpStatusCode expected)
+    {
+        await using var factory = new ArbiterFactory(); using var client = factory.CreateAuthorizedClient();
+        var response = await client.PostAsJsonAsync("/render", new RenderRequest { Kind = RenderKind.Asset, AssetId = assetId });
+        Assert.Equal(expected, response.StatusCode);
+        var payload = await response.Content.ReadFromJsonAsync<RenderErrorResponse>();
+        Assert.NotNull(payload); Assert.Single(payload.Errors); Assert.Equal(0, payload.Errors[0].Code); Assert.NotEmpty(payload.Errors[0].Message);
+    }
+
     private static HttpRequestMessage CreateRequest(RouteCase route)
     {
         var request = new HttpRequestMessage(new HttpMethod(route.Method), route.Path);
@@ -159,10 +223,27 @@ public sealed class ArbiterRouteTests
             builder.ConfigureServices(services =>
             {
                 services.RemoveAll<IRccProcessPool>();
+                services.RemoveAll<IRenderService>();
                 services.RemoveAll<IHostedService>();
                 services.AddSingleton<IRccProcessPool, FakeProcessPool>();
+                services.AddSingleton<IRenderService, FakeRenderService>();
             });
         }
+    }
+
+    private sealed class FakeRenderService : IRenderService
+    {
+        public Task<RenderResult> RenderAsync(RenderRequest request, CancellationToken cancellationToken)
+        {
+            if (request.AssetId == -400) throw new RenderValidationException("invalid render");
+            if (request.AssetId == -429) throw new RenderCapacityException("queue full");
+            if (request.AssetId == -502) throw new RenderExecutionException("RCC failed");
+            if (request.AssetId == -504) throw new TimeoutException("RCC timed out");
+            return Task.FromResult(new RenderResult
+            { JobId = Guid.NewGuid(), ContentType = "image/png", Data = "cG5n", DependencyUrls = ["https://example.test/dependency"] });
+        }
+        public RenderStatistics GetStatistics() => new() { Capacity = 8, QueueCapacity = 128 };
+        public int CleanUpIdleWorkers() => 0;
     }
 
     private sealed class FakeProcessPool : IRccProcessPool

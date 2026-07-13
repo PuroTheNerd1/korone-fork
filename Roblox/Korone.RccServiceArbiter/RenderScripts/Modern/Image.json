@@ -1,16 +1,16 @@
-{
+{ 
   "Mode": "Thumbnail",
   "Settings": {
-    "Type": "Avatar_R15_Action",
+    "Type": "Image",
     "Arguments": [
-       "http://pekora.zip/",
-       "characterAppearanceUrl",
+       "assetId",
+       "baseUrl",
        "PNG",
        "x",
        "y",
        true,
-       30,
-       100,
+       0,
+       0,
        0,
        0
     ]

@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.Services", "Roblox.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.Rendering", "Roblox.Rendering\Roblox.Rendering.csproj", "{F484154A-A906-4BD1-A666-747DCB17349A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.Rendering.Contracts", "Roblox.Rendering.Contracts\Roblox.Rendering.Contracts.csproj", "{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.Rendering.Test", "Roblox.Rendering.Test\Roblox.Rendering.Test.csproj", "{8CB4C453-0BF6-4D3A-98DC-3A3D6DE2D094}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roblox.Configuration", "Roblox.Configuration\Roblox.Configuration.csproj", "{15F92C60-6BD9-4739-9B8E-B3F7E0989269}"
@@ -173,6 +175,18 @@ Global
 		{F484154A-A906-4BD1-A666-747DCB17349A}.Release|x64.Build.0 = Release|Any CPU
 		{F484154A-A906-4BD1-A666-747DCB17349A}.Release|x86.ActiveCfg = Release|Any CPU
 		{F484154A-A906-4BD1-A666-747DCB17349A}.Release|x86.Build.0 = Release|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Debug|x64.Build.0 = Debug|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Debug|x86.Build.0 = Debug|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Release|x64.ActiveCfg = Release|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Release|x64.Build.0 = Release|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Release|x86.ActiveCfg = Release|Any CPU
+		{B23C99A4-8541-4AF0-A9CF-24E849B2F8B7}.Release|x86.Build.0 = Release|Any CPU
 		{8CB4C453-0BF6-4D3A-98DC-3A3D6DE2D094}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8CB4C453-0BF6-4D3A-98DC-3A3D6DE2D094}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8CB4C453-0BF6-4D3A-98DC-3A3D6DE2D094}.Debug|x64.ActiveCfg = Debug|Any CPU

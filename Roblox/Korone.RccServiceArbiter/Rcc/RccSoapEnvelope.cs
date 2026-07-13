@@ -15,6 +15,18 @@ public static class RccSoapEnvelope
         return Wrap(new XElement(serviceNamespace + "OpenJobEx", JobElement(serviceNamespace, job), ScriptElement(serviceNamespace, script)));
     }
 
+    public static XDocument BatchJobEx(string serviceUrl, Job job, ScriptExecution script)
+    {
+        var serviceNamespace = ServiceNamespace(serviceUrl);
+        return Wrap(new XElement(serviceNamespace + "BatchJobEx", JobElement(serviceNamespace, job), ScriptElement(serviceNamespace, script)));
+    }
+
+    public static XDocument BatchJob(string serviceUrl, Job job, ScriptExecution script)
+    {
+        var serviceNamespace = ServiceNamespace(serviceUrl);
+        return Wrap(new XElement(serviceNamespace + "BatchJob", JobElement(serviceNamespace, job), ScriptElement(serviceNamespace, script)));
+    }
+
     public static XDocument ExecuteEx(string serviceUrl, string jobId, ScriptExecution script)
     {
         var serviceNamespace = ServiceNamespace(serviceUrl);

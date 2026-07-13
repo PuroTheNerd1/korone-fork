@@ -96,19 +96,13 @@ public static class RobloxWebsiteBuilderExtensions
         ApplicationGuardMiddleware.Configure(options.Authorization);
         CsrfMiddleware.Configure(Guid.NewGuid() + Guid.NewGuid().ToString() + Guid.NewGuid());
         SessionMiddleware.Configure(options.Jwt.Sessions);
-        CommandHandler.Configure(options.Render.BaseUrl, options.Render.Authorization);
+        var arbiterUrl = string.IsNullOrWhiteSpace(options.Render.BaseUrl)
+            ? $"https://arbiter.{Roblox.Configuration.ShortBaseUrl}/"
+            : options.Render.BaseUrl;
+        CommandHandler.Configure(arbiterUrl, options.ArbiterAuthorization);
         Roblox.Services.Signer.SignService.Setup();
 
-        var rendererBaseUrl = options.Render.RendererBaseUrl;
-        if (string.IsNullOrWhiteSpace(rendererBaseUrl))
-        {
-#if DEBUG
-            rendererBaseUrl = "http://game-renderer:3043";
-#else
-            rendererBaseUrl = "http://127.0.0.1:3043";
-#endif
-        }
-        RenderingHandler.Configure(rendererBaseUrl);
+        RenderingHandler.Configure(arbiterUrl, options.ArbiterAuthorization);
     }
 
     public static IServiceCollection AddRobloxWebsiteServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)

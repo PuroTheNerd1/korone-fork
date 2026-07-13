@@ -1,16 +1,19 @@
-{
+{ 
   "Mode": "Thumbnail",
   "Settings": {
-    "Type": "Place",
+    "Type": "Head",
     "Arguments": [
-      "https://www.pekora.zip/asset?id=%universeId%",
+      "assetUrl",
       "PNG",
       "x",
       "y",
       "baseUrl",
-      420,
-      "baseUrl",
-      1
+      "mannequinId",
+      true,
+      0,
+      0,
+      0,
+      0
     ]
   },
   "Arguments": {}

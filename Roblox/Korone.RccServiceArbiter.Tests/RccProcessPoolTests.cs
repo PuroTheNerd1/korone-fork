@@ -189,6 +189,10 @@ public sealed class RccProcessPoolTests
 
     private sealed class FakeSoapClient : IRccSoapClient
     {
+        public Task<IReadOnlyList<LuaValue>> BatchJobAsync(Job job, ScriptExecution script, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<LuaValue>>(Array.Empty<LuaValue>());
+        public Task<IReadOnlyList<LuaValue>> BatchJobExAsync(Job job, ScriptExecution script, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<LuaValue>>(Array.Empty<LuaValue>());
         public Task OpenJobExAsync(Job job, ScriptExecution script, CancellationToken cancellationToken) => Task.CompletedTask;
         public Task ExecuteExAsync(string jobId, ScriptExecution script, CancellationToken cancellationToken) => Task.CompletedTask;
         public Task CloseJobAsync(string jobId, CancellationToken cancellationToken) => Task.CompletedTask;

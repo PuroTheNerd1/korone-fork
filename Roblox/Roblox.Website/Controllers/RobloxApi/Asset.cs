@@ -256,7 +256,7 @@ public class Asset : ControllerBase
                 if (RenderingHandler.allowedPlaceForRender.ContainsKey(assetId))
                 {
                     Writer.Info(LogGroup.AssetDelivery, "RCC is requesting a place {0} for rendering", assetId);
-                    RenderingHandler.allowedPlaceForRender.Remove(assetId);
+                    RenderingHandler.allowedPlaceForRender.TryRemove(assetId, out _);
                     return true;
                 }
                 return false;

@@ -146,7 +146,15 @@ public sealed class RccProcessPool : IRccProcessPool
         try
         {
             ReleaseGamePorts(handle);
-            DisposeHandle(handle);
+            if (CanRecycle(handle))
+            {
+                handle.MarkIdle(_clock.UtcNow);
+                EnqueueIdle(handle);
+            }
+            else
+            {
+                DisposeHandle(handle);
+            }
             return true;
         }
         finally

@@ -145,6 +145,9 @@
           "InfluxDB.Client": "[5.1.0, )",
           "Roblox.Logging": "[1.0.0, )"
         }
+      },
+      "roblox.rendering.contracts": {
+        "type": "Project"
       }
     }
   }

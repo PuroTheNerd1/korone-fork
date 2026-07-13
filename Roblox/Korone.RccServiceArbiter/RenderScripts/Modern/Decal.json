@@ -1,13 +1,13 @@
-{
+{ 
   "Mode": "Thumbnail",
   "Settings": {
-    "Type": "Hat",
+    "Type": "Decal",
     "Arguments": [
        "assetUrl",
        "PNG",
-       1680,
-       1680,
-       "https://www.pekora.zip",
+       "x",
+       "y",
+       "baseUrl",
        true,
        0,
        0,

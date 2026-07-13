@@ -64,4 +64,30 @@ public sealed class RccSoapEnvelopeTests
     {
         Assert.Equal("http://pekora.zip/OpenJobEx", RccSoapEnvelope.SoapAction(ServiceUrl, "OpenJobEx"));
     }
+
+    [Fact]
+    public void BatchJob_ModernJsonPayload_UsesLegacyBatchJobSoapOperation()
+    {
+        var xml = RccSoapEnvelope.ToRequestBody(RccSoapEnvelope.BatchJob(ServiceUrl,
+            new Job { Id = "render-1", Category = 2, Cores = 1, ExpirationInSeconds = 60 },
+            new ScriptExecution { Name = "Avatar", Script = "{\"Mode\":\"Thumbnail\"}" }));
+        Assert.Contains("BatchJob", xml); Assert.DoesNotContain("BatchJobEx", xml);
+        Assert.Contains("<![CDATA[{\"Mode\":\"Thumbnail\"}]]>", xml);
+    }
+
+    [Fact]
+    public void BatchJobResponse_ParsesScalarAndDependencyTable()
+    {
+        const string xml = """
+            <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><BatchJobResponse>
+              <BatchJobResult><type>LUA_TSTRING</type><value>aW1hZ2U=</value><table /></BatchJobResult>
+              <BatchJobResult><type>LUA_TTABLE</type><value></value><table>
+                <LuaValue><type>LUA_TSTRING</type><value>https://example.test/asset</value><table /></LuaValue>
+              </table></BatchJobResult>
+            </BatchJobResponse></soap:Body></soap:Envelope>
+            """;
+        var values = RccSoapClient.ParseBatchJobResponse(xml);
+        Assert.Equal(2, values.Count); Assert.Equal("aW1hZ2U=", values[0].Value);
+        Assert.Single(values[1].Table); Assert.Equal("https://example.test/asset", values[1].Table[0].Value);
+    }
 }

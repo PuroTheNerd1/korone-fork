@@ -1,14 +1,13 @@
-{
+{ 
   "Mode": "Thumbnail",
   "Settings": {
-    "Type": "Shirt",
+    "Type": "MeshPart",
     "Arguments": [
        "assetUrl",
        "PNG",
        "x",
        "y",
-       "baseUrl",
-       1785197,
+       "https://www.pekora.zip",
        true,
        0,
        0,

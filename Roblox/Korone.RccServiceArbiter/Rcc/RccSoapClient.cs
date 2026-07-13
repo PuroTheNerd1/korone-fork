@@ -22,6 +22,38 @@ public sealed class RccSoapClient : IRccSoapClient
         return SendAsync("OpenJobEx", RccSoapEnvelope.OpenJobEx(_serviceUrl, job, script), cancellationToken);
     }
 
+    public async Task<IReadOnlyList<LuaValue>> BatchJobExAsync(Job job, ScriptExecution script, CancellationToken cancellationToken)
+    {
+        var response = await SendForResponseAsync("BatchJobEx", RccSoapEnvelope.BatchJobEx(_serviceUrl, job, script), cancellationToken);
+        return ParseBatchJobResponse(response);
+    }
+
+    public async Task<IReadOnlyList<LuaValue>> BatchJobAsync(Job job, ScriptExecution script, CancellationToken cancellationToken)
+    {
+        var response = await SendForResponseAsync("BatchJob", RccSoapEnvelope.BatchJob(_serviceUrl, job, script), cancellationToken);
+        return ParseBatchJobResponse(response);
+    }
+
+    public static IReadOnlyList<LuaValue> ParseBatchJobResponse(string response)
+    {
+        var document = XDocument.Parse(response);
+        var results = document.Descendants().Where(element =>
+            element.Name.LocalName is "BatchJobExResult" or "BatchJobResult").ToList();
+        if (results.Count == 0)
+        {
+            return Array.Empty<LuaValue>();
+        }
+        var values = new List<LuaValue>();
+        foreach (var result in results)
+        {
+            if (IsLuaValue(result)) { values.Add(ParseLuaValue(result)); continue; }
+            values.AddRange(result.Descendants().Where(IsLuaValue)
+                .Where(element => !element.Ancestors().TakeWhile(ancestor => ancestor != result).Any(IsLuaValue))
+                .Select(ParseLuaValue));
+        }
+        return values;
+    }
+
     public Task ExecuteExAsync(string jobId, ScriptExecution script, CancellationToken cancellationToken)
     {
         return SendAsync("ExecuteEx", RccSoapEnvelope.ExecuteEx(_serviceUrl, jobId, script), cancellationToken);
@@ -63,8 +95,12 @@ public sealed class RccSoapClient : IRccSoapClient
     {
         using var request = CreateRequest(action, document);
         using var response = await _httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync(cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"RCC {action} returned HTTP {(int)response.StatusCode}: {body}", null, response.StatusCode);
+        }
+        return body;
     }
 
     private HttpRequestMessage CreateRequest(string action, XDocument document)
@@ -74,5 +110,22 @@ public sealed class RccSoapClient : IRccSoapClient
         request.Content = new StringContent(RccSoapEnvelope.ToRequestBody(document), Encoding.UTF8);
         request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml; charset=utf-8");
         return request;
+    }
+
+    private static bool IsLuaValue(XElement element) =>
+        element.Elements().Any(child => child.Name.LocalName == "type");
+
+    private static LuaValue ParseLuaValue(XElement element)
+    {
+        var typeText = element.Elements().FirstOrDefault(child => child.Name.LocalName == "type")?.Value;
+        var table = element.Elements().FirstOrDefault(child => child.Name.LocalName == "table");
+        return new LuaValue
+        {
+            Type = Enum.TryParse<LuaType>(typeText, true, out var type) ? type : LuaType.LUA_TNIL,
+            Value = element.Elements().FirstOrDefault(child => child.Name.LocalName == "value")?.Value ?? string.Empty,
+            Table = table == null
+                ? Array.Empty<LuaValue>()
+                : table.Elements().Where(IsLuaValue).Select(ParseLuaValue).ToList(),
+        };
     }
 }

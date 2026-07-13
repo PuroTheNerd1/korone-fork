@@ -1,325 +1,69 @@
-using System.Diagnostics;
-using System.Text;
-using Roblox;
-using System.Text.Json;
-using System.Net.Http.Json;
-using System.Dynamic;
 using NetVips;
 
-namespace Roblox.Rendering
+namespace Roblox.Rendering;
+
+public static class RenderingHandler
 {
-    public class RenderingHandler
+    public static System.Collections.Concurrent.ConcurrentDictionary<long, string> allowedPlaceForRender { get; } = new();
+
+    public static void Configure(string baseUrl, string authorization = "") => RenderHttpClient.Configure(baseUrl, authorization);
+
+    private static async Task<string> SendAsync(RenderRequest request, CancellationToken? cancellationToken = null)
     {
-        private static readonly HttpClient client = new HttpClient();
-        private static string _baseUrl = "http://127.0.0.1:3043";
-        private static Random RandomComponent = new Random();
-        // TODO: REWRITE RENDERING HANDLER
-        private enum RenderType
+        var result = await RenderHttpClient.SendAsync(request, cancellationToken ?? CancellationToken.None);
+        return result.ContentType.Equals("application/json", StringComparison.OrdinalIgnoreCase)
+            ? System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(result.Data))
+            : result.Data;
+    }
+
+    public static Task<string> RequestHatThumbnail(long assetId) => SendAsync(new RenderRequest { Kind = RenderKind.Hat, AssetId = assetId });
+    public static Task<string> RequestMeshThumbnail(long assetId) => SendAsync(new RenderRequest { Kind = RenderKind.Mesh, AssetId = assetId });
+    public static Task<string> RequestMeshPartThumbnail(long assetId) => SendAsync(new RenderRequest { Kind = RenderKind.MeshPart, AssetId = assetId });
+    public static Task<string> RequestModelThumbnail(long assetId) => SendAsync(new RenderRequest { Kind = RenderKind.Model, AssetId = assetId });
+    public static Task<string> RequestImageThumbnail(long assetId, bool isFace = false) => SendAsync(new RenderRequest { Kind = RenderKind.Texture, AssetId = assetId, IsFace = isFace });
+    public static Task<string> RequestClothingRender(long assetId) => SendAsync(new RenderRequest { Kind = RenderKind.Clothing, AssetId = assetId });
+    public static Task<string> RequestTeeShirtRender(long assetId) => SendAsync(new RenderRequest { Kind = RenderKind.TeeShirt, AssetId = assetId });
+    public static Task<string> RequestHeadRender(long assetId) => SendAsync(new RenderRequest { Kind = RenderKind.Head, AssetId = assetId });
+    public static Task<string> RequestAnimationSilhouetteRender(long assetId) => SendAsync(new RenderRequest { Kind = RenderKind.AnimationSilhouette, AssetId = assetId });
+    public static Task<string> RequestAnimationRender(string characterAppearanceUrl, string animationUrl) => SendAsync(new RenderRequest
+    { Kind = RenderKind.Animation, CharacterAppearanceUrl = characterAppearanceUrl, AnimationUrl = animationUrl });
+    public static Task<string> RequestPackageRender(string assetUrls) => SendAsync(new RenderRequest { Kind = RenderKind.Package, AssetUrls = assetUrls });
+    public static Task<string> RequestBodyPartRender(string assetUrl) => SendAsync(new RenderRequest { Kind = RenderKind.BodyPart, AssetUrl = assetUrl });
+    public static Task<string> RequestPlayerThumbnail(long userId, CancellationToken? cancellationToken = null) =>
+        SendAsync(new RenderRequest { Kind = RenderKind.Avatar, UserId = userId, Width = 840, Height = 840 }, cancellationToken);
+    public static Task<string> RequestPlayerThumbnail3D(long userId, CancellationToken? cancellationToken = null) =>
+        SendAsync(new RenderRequest { Kind = RenderKind.Avatar3D, UserId = userId, Width = 352, Height = 352 }, cancellationToken);
+    public static Task<string> RequestHeadshotThumbnail(long userId, CancellationToken? cancellationToken = null) =>
+        SendAsync(new RenderRequest { Kind = RenderKind.AvatarHeadshot, UserId = userId, Width = 720, Height = 720 }, cancellationToken);
+
+    public static async Task<string> RequestPlaceRender(long assetId, int x, int y)
+    {
+        allowedPlaceForRender.TryAdd(assetId, string.Empty);
+        return await SendAsync(new RenderRequest { Kind = RenderKind.Place, AssetId = assetId, Width = x, Height = y });
+    }
+
+    public static Task<TReturn> ResizeImage<TReturn, TImageType>(TImageType inputImage, int width, int height)
+    {
+        if (width <= 0 || height <= 0) throw new ArgumentOutOfRangeException(nameof(width), "Image dimensions must be positive");
+        byte[] source = inputImage switch
         {
-            Avatar = 0,
-            Headshot,
-            Head,
-            Package,
-            BodyPart,
-            Image,
-            Clothing,
-            TeeShirt,
-            Face,
-            Mesh,
-            MeshPart,
-            Hat,
-            Place,
-            Model,
-            Emote,
-            Animation,
-            Avatar3D
-        }
-        private class RenderResponse
-        {
-            public bool success { get; set; }
-            public string? message { get; set; }
-            public string? data { get; set; }
-        }
-        public static void Configure(string baseUrl)
-        {
-            _baseUrl = baseUrl.TrimEnd('/');
-        }
-        public static Dictionary<long, string> allowedPlaceForRender = new Dictionary<long, string>();
-        private static async Task<dynamic> SendRenderRequest(long id, RenderType type, int? x = 0, int? y = 0, bool? isFace = false, string? assetUrl = null, string? characterAppearanceUrl = null, string? animationUrl = null, CancellationToken? cancellationToken = null)
-        {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            string url = "";
-            // Hacky asf
-            dynamic renderRequest = new ExpandoObject();
+            string value => Convert.FromBase64String(value),
+            byte[] value => value,
+            Stream stream when stream.CanRead => ReadStream(stream),
+            _ => throw new ArgumentException("Unsupported image input type", nameof(inputImage)),
+        };
+        using var image = Image.ThumbnailBuffer(source, width, height: height, size: Enums.Size.Force);
+        var output = image.PngsaveBuffer();
+        object result = typeof(TReturn) == typeof(string) ? Convert.ToBase64String(output)
+            : typeof(TReturn) == typeof(byte[]) ? output
+            : typeof(TReturn) == typeof(MemoryStream) || typeof(TReturn) == typeof(Stream) ? new MemoryStream(output, writable: false)
+            : throw new ArgumentException("Unsupported image return type", nameof(TReturn));
+        return Task.FromResult((TReturn)result);
+    }
 
-            switch (type)
-            {
-                case RenderType.Avatar:
-                    renderRequest.userId = id;
-                    url = "player/thumbnail";
-                    break;
-                case RenderType.Avatar3D:
-                    renderRequest.userId = id;
-                    url = "player/thumbnail-3d";
-                    break;
-                case RenderType.Headshot:
-                    renderRequest.userId = id;
-                    url = "player/headshot";
-                    break;
-                case RenderType.Package:
-                    Console.WriteLine("[RenderingHandler] Requesting package render for " + assetUrl);
-                    renderRequest.assetUrls = assetUrl;
-                    url = "catalog/package";
-                    break;
-                case RenderType.BodyPart:
-                    renderRequest.assetUrl = assetUrl;
-                    url = "catalog/bodypart";
-                    break;
-                case RenderType.Head:
-                    renderRequest.assetId = id;
-                    url = "catalog/head";
-                    break;
-                case RenderType.Image:
-                    renderRequest.assetId = id;
-                    renderRequest.isFace = isFace;
-                    url = "image/image";
-                    break;
-                case RenderType.Clothing:
-                    renderRequest.assetId = id;
-                    url = "image/clothing";
-                    break;
-                case RenderType.TeeShirt:
-                    renderRequest.assetId = id;
-                    url = "image/teeshirt";
-                    break;
-                case RenderType.Mesh:
-                    renderRequest.assetId = id;
-                    url = "catalog/mesh";
-                    break;
-                // case RenderType.MeshPart:
-                //     renderRequest.assetId = id;
-                //     url = "catalog/meshpart";
-                //     break;
-                case RenderType.Hat:
-                    renderRequest.assetId = id;
-                    url = "catalog/hat";
-                    break;
-                case RenderType.Place:
-                    renderRequest.placeId = id;
-                    renderRequest.x = x;
-                    renderRequest.y = y;
-                    url = "game/thumbnail";
-                    allowedPlaceForRender.TryAdd(id, ""); // Add to the dictionary to allow rendering
-                    break;
-                case RenderType.Model:
-                    renderRequest.assetId = id;
-                    url = "catalog/model";
-                    break;
-                case RenderType.Emote:
-                    renderRequest.assetId = id;
-                    url = "catalog/animationsilhouette";
-                    break;
-                case RenderType.Animation:
-                    renderRequest.characterAppearanceUrl = characterAppearanceUrl;
-                    renderRequest.animationUrl = animationUrl;
-                    url = "catalog/animation";
-                    break;
-            }
-            // i will add error handling to this later
-            var content = new StringContent(JsonSerializer.Serialize(renderRequest), Encoding.UTF8, "application/json");
-            var requestUrl = $"{_baseUrl}/{url}";
-            Console.WriteLine($"[RenderingHandler] POST {requestUrl}");
-            HttpResponseMessage response = await client.PostAsync(requestUrl, content, cancellationToken ?? CancellationToken.None);
-            sw.Stop();
-            Console.WriteLine($"[RenderingHandler] {requestUrl} returned {(int)response.StatusCode} in {sw.ElapsedMilliseconds}ms");
-            response.EnsureSuccessStatusCode();
-            var request = await response.Content.ReadFromJsonAsync<RenderResponse>(cancellationToken: cancellationToken ?? CancellationToken.None);
-            if (request is null)
-            {
-                throw new Exception($"Renderer returned an empty response for {url}");
-            }
-
-            if (!request.success || string.IsNullOrWhiteSpace(request.data))
-            {
-                throw new Exception($"Renderer failed {url}: {request.message}");
-            }
-
-            return request.data;
-        }
-
-        public static async Task<string> RequestHatThumbnail(long assetId)
-        {
-            return await SendRenderRequest(assetId, RenderType.Hat);
-        }
-
-        public static async Task<string> RequestMeshThumbnail(long assetId)
-        {
-            return await SendRenderRequest(assetId, RenderType.Mesh);
-        }
-
-        public static async Task<string> RequestMeshPartThumbnail(long assetId)
-        {
-            return await SendRenderRequest(assetId, RenderType.MeshPart);
-        }
-
-        public static async Task<string> RequestModelThumbnail(long assetId)
-        {
-            return await SendRenderRequest(assetId, RenderType.Model);
-        }
-
-        public static async Task<string> RequestImageThumbnail(long assetId, bool isFace = false)
-        {
-            return await SendRenderRequest(assetId, RenderType.Image, isFace: isFace);
-        }
-
-        public static async Task<string> RequestPlaceRender(long assetId, int x, int y)
-        {
-            return await SendRenderRequest(assetId, RenderType.Place, x, y);
-        }
-
-        public static async Task<string> RequestClothingRender(long assetId)
-        {
-            return await SendRenderRequest(assetId, RenderType.Clothing);
-        }
-
-        public static async Task<string> RequestTeeShirtRender(long assetId)
-        {
-            return await SendRenderRequest(assetId, RenderType.TeeShirt);
-        }
-
-        public static async Task<string> RequestHeadRender(long assetId)
-        {
-            return await SendRenderRequest(assetId, RenderType.Head);
-        }
-
-        public static async Task<string> RequestAnimationSilhouetteRender(long assetId)
-        {
-            return await SendRenderRequest(assetId, RenderType.Emote);
-        }
-        public static async Task<string> RequestAnimationRender(string characterAppearanceUrl, string animationUrl)
-        {
-            return await SendRenderRequest(0, RenderType.Animation, characterAppearanceUrl: characterAppearanceUrl, animationUrl: animationUrl);
-        }
-        public static async Task<string> RequestPackageRender(string assetUrls)
-        {
-            return await SendRenderRequest(0, RenderType.Package, assetUrl: assetUrls);
-        }
-        public static async Task<string> RequestBodyPartRender(string assetUrl)
-        {
-            return await SendRenderRequest(0, RenderType.BodyPart, assetUrl: assetUrl);
-        }
-        public static async Task<string> RequestPlayerThumbnail(long userId, CancellationToken? cancellationToken = null)
-        {
-            return await SendRenderRequest(userId, RenderType.Avatar, cancellationToken: cancellationToken);
-        }
-        public static async Task<string> RequestPlayerThumbnail3D(long userId, CancellationToken? cancellationToken = null)
-        {
-            return await SendRenderRequest(userId, RenderType.Avatar3D, cancellationToken: cancellationToken);
-        }
-        public static async Task<string> RequestHeadshotThumbnail(long userId, CancellationToken? cancellationToken = null)
-        {
-            return await SendRenderRequest(userId, RenderType.Headshot, cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
-        /// Resizes an image to the specified width and height.
-        /// </summary>
-        /// <typeparam name="TReturn">
-        /// The format you want the resized image returned in. It can be:
-        /// <list type="bullet">
-        ///   <item>A <see cref="MemoryStream"/></item>
-        ///   <item>A byte array (<see cref="byte[]"/>)</item>
-        ///   <item>A Base64 string representing the PNG image</item>
-        /// </list>
-        /// </typeparam>
-        /// <typeparam name="TImageType">
-        /// The type of the input image you provide. Supported types are:
-        /// <list type="bullet">
-        ///   <item>A Base64 string</item>
-        ///   <item>A byte array</item>
-        ///   <item>Any <see cref="Stream"/> that supports reading and seeking (like <see cref="MemoryStream"/> or <see cref="FileStream"/>)</item>
-        /// </list>
-        /// </typeparam>
-        /// <param name="inputImage">The image you want to resize, in one of the supported formats.</param>
-        /// <param name="width">The new width for the image.</param>
-        /// <param name="height">The new height for the image.</param>
-        /// <returns>
-        /// The resized image in the format you requested.
-        /// </returns>
-        /// <exception cref="ArgumentException">
-        /// Thrown if the input type isn't supported, if the input stream can't be read or seeked,
-        /// or if the requested return type isn't supported.
-        /// </exception>
-        public static async Task<TReturn> ResizeImage<TReturn, TImageType>(TImageType inputImage, int width, int height)
-        {
-            MemoryStream imageStream;
-
-            if (typeof(TImageType) == typeof(string))
-            {
-                string base64 = (string)(object)inputImage!;
-                byte[] imageBytes = Convert.FromBase64String(base64);
-                imageStream = new MemoryStream(imageBytes);
-            }
-            else if (typeof(TImageType) == typeof(byte[]))
-            {
-                byte[] bytes = (byte[])(object)inputImage!;
-                imageStream = new MemoryStream(bytes);
-            }
-            else if (typeof(Stream).IsAssignableFrom(typeof(TImageType)))
-            {
-                var inputStream = (Stream)(object)inputImage!;
-                if (!inputStream.CanSeek)
-                    throw new ArgumentException("Input stream must be seekable.");
-
-                inputStream.Position = 0;
-
-                imageStream = new MemoryStream();
-                await inputStream.CopyToAsync(imageStream);
-                imageStream.Position = 0;
-            }
-            else
-            {
-                throw new ArgumentException("Unsupported image type for resizing.");
-            }
-
-            using (imageStream)
-            {
-                using var image = Image.ThumbnailStream(
-                    imageStream,
-                    width,
-                    height: height,
-                    size: Enums.Size.Force,
-                    failOn: Enums.FailOn.Error);
-
-                if (typeof(TReturn) == typeof(MemoryStream))
-                {
-                    var outStream = new MemoryStream();
-                    image.PngsaveStream(outStream);
-                    outStream.Position = 0;
-                    return (TReturn)(object)outStream;
-                }
-
-                if (typeof(TReturn) == typeof(byte[]))
-                {
-                    var outStream = new MemoryStream();
-                    image.PngsaveStream(outStream);
-                    outStream.Position = 0;
-                    return (TReturn)(object)outStream.ToArray();
-                }
-
-                if (typeof(TReturn) == typeof(string))
-                {
-                    var outStream = new MemoryStream();
-                    image.PngsaveStream(outStream);
-                    outStream.Position = 0;
-                    byte[] bytesResult = outStream.ToArray();
-                    string base64Result = Convert.ToBase64String(bytesResult);
-                    return (TReturn)(object)base64Result;
-                }
-
-                throw new ArgumentException("Unsupported return type requested.");
-            }
-        }
+    private static byte[] ReadStream(Stream stream)
+    {
+        if (stream is MemoryStream memory) return memory.ToArray();
+        using var copy = new MemoryStream(); stream.CopyTo(copy); return copy.ToArray();
     }
 }

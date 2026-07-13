@@ -2,6 +2,7 @@ using Korone.RccServiceArbiter.Configuration;
 using Korone.RccServiceArbiter.Middleware;
 using Korone.RccServiceArbiter.Processes;
 using Korone.RccServiceArbiter.Rcc;
+using Korone.RccServiceArbiter.Rendering;
 using Korone.RccServiceArbiter.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -40,7 +41,10 @@ builder.Services.AddHttpClient<IRccSoapClientFactory, RccSoapClientFactory>();
 builder.Services.AddSingleton<IRccJsonPayloadFactory, RccJsonPayloadFactory>();
 builder.Services.AddSingleton<IArbiterPostStartQueue, ArbiterPostStartQueue>();
 builder.Services.AddSingleton<IRccProcessPool, RccProcessPool>();
+builder.Services.AddSingleton<IRenderScriptCatalog, RenderScriptCatalog>();
+builder.Services.AddSingleton<IRenderService, RenderService>();
 builder.Services.AddHostedService<RccProcessCleanupService>();
+builder.Services.AddHostedService<RenderWorkerCleanupService>();
 builder.Services.AddHostedService<ArbiterPostStartWorker>();
 
 var app = builder.Build();
