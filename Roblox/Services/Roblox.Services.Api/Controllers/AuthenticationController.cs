@@ -35,10 +35,7 @@ public class AuthenticationController : RobloxControllerBase
         return Ok(result.response);
     }
     
-    // TODO - neva: is this really HttpGet? as far as i know, its just HttpPost
-    [RequireRobloxClient]
     [RequireRobloxSession]
-    [HttpGet("sign-out/v1")]
     [HttpPost("sign-out/v1")]
     public void Logout()
     {
