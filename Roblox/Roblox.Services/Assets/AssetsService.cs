@@ -24,6 +24,7 @@ using Roblox.Services.App.FeatureFlags;
 using Roblox.Services.DbModels;
 using Roblox.Services.Exceptions;
 using Roblox.Services.Caching;
+using Roblox.Services.Assets;
 using NetVips;
 
 using AssetId = Roblox.Dto.Assets.AssetId;
@@ -679,50 +680,58 @@ public class AssetsService : ServiceBase, IService
     }
 
     #region RenderMethods
+    private long? _expectedRenderVersionId;
+    private string? _renderWorkKey;
+
+    private void EnsureCurrentRenderVersion(long currentVersionId)
+    {
+        if (_expectedRenderVersionId.HasValue && _expectedRenderVersionId.Value != currentVersionId)
+            throw new StaleAssetRenderException(_expectedRenderVersionId.Value, currentVersionId);
+    }
 
     private async Task CreateAssetTextureThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
     {
         bool isFace = assetType == Type.Face;
-        string response = await RenderingHandler.RequestImageThumbnail(assetId, isFace);
+        string response = await RenderingHandler.RequestImageThumbnail(assetId, isFace, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, response, 420, 420, ModerationStatus.ReviewApproved);
     }
     private async Task CreatePackageThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var assets = await GetPackageAssets(assetId);
         string assetUrls = string.Join(";", assets.Select(c => Configuration.BaseUrl + "/asset/?id=" + c));
-        string render = await RenderingHandler.RequestPackageRender(assetUrls);
+        string render = await RenderingHandler.RequestPackageRender(assetUrls, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.AwaitingApproval);
     }
     private async Task CreateAssetThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
-        string render = await RenderingHandler.RequestHatThumbnail(assetId);
+        string render = await RenderingHandler.RequestHatThumbnail(assetId, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.ReviewApproved);
     }
     private async Task CreateAnimationThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
-        string render = await RenderingHandler.RequestAnimationRender($"https://api.{Configuration.ShortBaseUrl}/v1.1/avatar-fetch?userId=1", $"https://assetdelivery.{Configuration.ShortBaseUrl}/v1/asset?id={assetId}");
+        string render = await RenderingHandler.RequestAnimationRender($"https://api.{Configuration.ShortBaseUrl}/v1.1/avatar-fetch?userId=1", $"https://assetdelivery.{Configuration.ShortBaseUrl}/v1/asset?id={assetId}", _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.ReviewApproved);
     }
     private async Task CreateAnimationSilhouetteRender(long assetId, CancellationToken? cancellationToken = null)
     {
-        string render = await RenderingHandler.RequestAnimationSilhouetteRender(assetId);
+        string render = await RenderingHandler.RequestAnimationSilhouetteRender(assetId, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.ReviewApproved);
     }
     private async Task CreateModelThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
-        string render = await Rendering.RenderingHandler.RequestModelThumbnail(assetId);
+        string render = await Rendering.RenderingHandler.RequestModelThumbnail(assetId, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.AwaitingApproval);
     }
 
     private async Task CreateMeshPartThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
-        string response = await RenderingHandler.RequestMeshPartThumbnail(assetId);
+        string response = await RenderingHandler.RequestMeshPartThumbnail(assetId, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, response, 420, 420, ModerationStatus.AwaitingApproval);
     }
 
     private async Task CreateMeshThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
-        string render = await RenderingHandler.RequestMeshThumbnail(assetId);
+        string render = await RenderingHandler.RequestMeshThumbnail(assetId, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.AwaitingApproval);
     }
 
@@ -749,7 +758,7 @@ public class AssetsService : ServiceBase, IService
             return;
         }
 
-        string response = await RenderingHandler.RequestPlaceRender(assetId, 1680, 1680);
+        string response = await RenderingHandler.RequestPlaceRender(assetId, 704, 704, cancellationToken: cancellationToken);
         const bool isIcon = true;
         await UploadThumbnail(assetId, response, 352, 352, ModerationStatus.ReviewApproved, isIcon);
     }
@@ -790,7 +799,7 @@ public class AssetsService : ServiceBase, IService
         {
             return;
         }
-        string render = await RenderingHandler.RequestPlaceRender(assetId, 1680, 945);
+        string render = await RenderingHandler.RequestPlaceRender(assetId, 1280, 720, cancellationToken: cancellationToken);
 
         using (var imageStream = await RenderingHandler.ResizeImage<MemoryStream, string>(render, 640, 360))
         {
@@ -817,6 +826,7 @@ public class AssetsService : ServiceBase, IService
     private async Task CreateTeeShirtThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
+        EnsureCurrentRenderVersion(latestVersion.assetVersionId);
         var thumbnailToUse = await Rendering.CommandHandler.RequestAssetTeeShirt(assetId, latestVersion.contentId, cancellationToken);
         var key = await UploadAssetContent(thumbnailToUse, Configuration.ThumbnailsDirectory, "png");
         await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
@@ -826,6 +836,7 @@ public class AssetsService : ServiceBase, IService
     private async Task CreateRawImageThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
+        EnsureCurrentRenderVersion(latestVersion.assetVersionId);
         if (latestVersion.contentUrl == null)
             throw new Exception("Latest asset version has no contentUrl");
         var thumbnailToUse = await GetAssetContent(latestVersion.contentUrl);
@@ -836,17 +847,17 @@ public class AssetsService : ServiceBase, IService
 
     private async Task CreateClothingThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
     {
-        string render = await RenderingHandler.RequestClothingRender(assetId);
+        string render = await RenderingHandler.RequestClothingRender(assetId, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.AwaitingApproval);
     }
     private async Task CreateBodyPartThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
     {
-        string render = await RenderingHandler.RequestBodyPartRender($"{Configuration.BaseUrl}/v1/asset?id={assetId}");
+        string render = await RenderingHandler.RequestBodyPartRender($"{Configuration.BaseUrl}/v1/asset?id={assetId}", _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.AwaitingApproval);
     }
     private async Task CreateHeadThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
     {
-        string render = await RenderingHandler.RequestHeadRender(assetId);
+        string render = await RenderingHandler.RequestHeadRender(assetId, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, render, 420, 420, ModerationStatus.AwaitingApproval);
     }
 
@@ -858,6 +869,7 @@ public class AssetsService : ServiceBase, IService
             key = await UploadAssetContent(imageStream, Configuration.ThumbnailsDirectory, "png");
         }
         var latestVersion = await GetLatestAssetVersion(assetId);
+        EnsureCurrentRenderVersion(latestVersion.assetVersionId);
         if (isIcon)
         {
             await InsertOrReplaceIcon(assetId, key, moderationStatus);
@@ -880,6 +892,7 @@ public class AssetsService : ServiceBase, IService
         }
 
         var latestVersion = await GetLatestAssetVersion(assetId);
+        EnsureCurrentRenderVersion(latestVersion.assetVersionId);
         if (isIcon)
         {
             await InsertOrReplaceIcon(assetId, key, moderationStatus);
@@ -890,7 +903,6 @@ public class AssetsService : ServiceBase, IService
         }
     }
     #endregion
-    private readonly List<long> inqueueAssetIds = new();
     /// <summary>
     /// Render asset and wait for it to finish
     /// </summary>
@@ -898,14 +910,11 @@ public class AssetsService : ServiceBase, IService
     /// <param name="assetType"></param>
     /// <param name="cancellationToken">The CancellationToken</param>
     /// <exception cref="Exception"></exception>
-    public async Task RenderAssetAsync(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
+    public async Task RenderAssetAsync(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null,
+        long? expectedAssetVersionId = null)
     {
-        if (inqueueAssetIds.Contains(assetId))
-        {
-            Writer.Info(LogGroup.AssetRender, "Already rendering asset {0}", assetId);
-            return;
-        }
-        inqueueAssetIds.Add(assetId);
+        _expectedRenderVersionId = expectedAssetVersionId;
+        _renderWorkKey = expectedAssetVersionId.HasValue ? $"asset-version:{expectedAssetVersionId.Value}" : $"asset:{assetId}";
         List<Task> thumbRequests = new();
         switch (assetType)
         {
@@ -1001,25 +1010,33 @@ public class AssetsService : ServiceBase, IService
         catch (System.Exception e)
         {
             Writer.Info(LogGroup.AssetRender, "Render failed for {0}:{1}: {2}\n{3}", assetId, assetType, e.Message, e.StackTrace);
+            throw;
         }
         finally
         {
-            inqueueAssetIds.Remove(assetId);
+            _expectedRenderVersionId = null;
+            _renderWorkKey = null;
         }
     }
 
     public void RenderAsset(long assetId, Models.Assets.Type assetType)
     {
-        if (ExecutionContext.IsFlowSuppressed())
+        if (!AssetRenderQueue.Enabled)
         {
             _ = Task.Run(() => RenderAssetAsync(assetId, assetType));
             return;
         }
+        AssetRenderQueue.Enqueue(assetId, assetType);
+    }
 
-        using (ExecutionContext.SuppressFlow())
+    public async Task QueueAssetRenderAsync(long assetId, Models.Assets.Type assetType)
+    {
+        if (!AssetRenderQueue.Enabled)
         {
-            _ = Task.Run(() => RenderAssetAsync(assetId, assetType));
+            RenderAsset(assetId, assetType);
+            return;
         }
+        await AssetRenderQueue.EnqueueAsync(assetId, 0, assetType);
     }
     private static byte[] ConvertBinaryMesh(byte[] buffer, String version)
     {
@@ -1582,7 +1599,7 @@ public class AssetsService : ServiceBase, IService
 
         if (!disableRender)
         {
-            RenderAsset(assetId, assetType);
+            await QueueAssetRenderAsync(assetId, assetType);
         }
 
         return new CreateResponse()

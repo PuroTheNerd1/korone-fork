@@ -131,7 +131,10 @@ public sealed class ArbiterRouteTests
     [Fact]
     public void RenderRouteMatrix_CoversEveryRenderControllerRoute()
     {
-        var expected = new HashSet<(string Method, string Path)> { ("POST", "/render"), ("GET", "/render/statistics") };
+        var expected = new HashSet<(string Method, string Path)>
+        {
+            ("POST", "/render"), ("POST", "/render/v2"), ("GET", "/render/statistics"),
+        };
         var declared = typeof(RenderController).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
             .SelectMany(method => method.GetCustomAttributes<HttpMethodAttribute>())
             .SelectMany(attribute => attribute.HttpMethods.Select(method => (method.ToUpperInvariant(), NormalizeRoute(attribute.Template!))))
@@ -141,6 +144,7 @@ public sealed class ArbiterRouteTests
 
     [Theory]
     [InlineData("POST", "/render")]
+    [InlineData("POST", "/render/v2")]
     [InlineData("GET", "/render/statistics")]
     public async Task RenderRoutes_RejectAnonymousRequests(string method, string path)
     {
@@ -168,6 +172,28 @@ public sealed class ArbiterRouteTests
         var payload = await response.Content.ReadFromJsonAsync<RenderResult>();
         Assert.NotNull(payload); Assert.NotEqual(Guid.Empty, payload.JobId); Assert.Equal("image/png", payload.ContentType);
         Assert.Equal("cG5n", payload.Data); Assert.NotNull(payload.DependencyUrls);
+    }
+
+    [Fact]
+    public async Task RenderV2_AuthorizedRequest_ReturnsRawBytesAndTimingMetadata()
+    {
+        await using var factory = new ArbiterFactory();
+        using var client = factory.CreateAuthorizedClient();
+
+        var response = await client.PostAsJsonAsync("/render/v2", new RenderRequest
+        {
+            Kind = RenderKind.Asset,
+            AssetId = 123,
+            Priority = RenderPriority.Background,
+            WorkKey = "asset-version:456",
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("image/png", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("png", System.Text.Encoding.UTF8.GetString(await response.Content.ReadAsByteArrayAsync()));
+        Assert.True(response.Headers.Contains("X-Render-Job-Id"));
+        Assert.Equal("warm", response.Headers.GetValues("X-Render-Worker-State").Single());
+        Assert.True(response.Headers.Contains("Server-Timing"));
     }
 
     [Theory]
@@ -233,15 +259,21 @@ public sealed class ArbiterRouteTests
 
     private sealed class FakeRenderService : IRenderService
     {
-        public Task<RenderResult> RenderAsync(RenderRequest request, CancellationToken cancellationToken)
+        public bool IsReady => true;
+        public Task<RenderOutput> RenderAsync(RenderRequest request, CancellationToken cancellationToken)
         {
             if (request.AssetId == -400) throw new RenderValidationException("invalid render");
             if (request.AssetId == -429) throw new RenderCapacityException("queue full");
             if (request.AssetId == -502) throw new RenderExecutionException("RCC failed");
             if (request.AssetId == -504) throw new TimeoutException("RCC timed out");
-            return Task.FromResult(new RenderResult
-            { JobId = Guid.NewGuid(), ContentType = "image/png", Data = "cG5n", DependencyUrls = ["https://example.test/dependency"] });
+            return Task.FromResult(new RenderOutput
+            {
+                JobId = Guid.NewGuid(), ContentType = "image/png", Data = "png"u8.ToArray(),
+                WorkerState = "warm", DependencyUrls = ["https://example.test/dependency"],
+                Timings = new Dictionary<string, double> { ["rcc"] = 12.5 },
+            });
         }
+        public Task EnsureWarmWorkersAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         public RenderStatistics GetStatistics() => new() { Capacity = 8, QueueCapacity = 128 };
         public int CleanUpIdleWorkers() => 0;
     }

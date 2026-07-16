@@ -78,6 +78,7 @@ public sealed class TelemetryRouteTests : IDisposable
         Assert.Contains("GeneratedAt", json.Keys);
         Assert.Contains("Summary", json.Keys);
         Assert.Contains("Charts", json.Keys);
+        Assert.Contains("RenderPool", json.Keys);
     }
 
     public void Dispose() => _server.Dispose();
@@ -86,7 +87,8 @@ public sealed class TelemetryRouteTests : IDisposable
     {
         public Task<TelemetryDashboardResponse> GetDashboardAsync(string range, string service, CancellationToken cancellationToken) =>
             Task.FromResult(new TelemetryDashboardResponse(DateTime.UtcNow, range, 15, service, new[] { "Roblox.Website" },
-                new TelemetrySummary(1, 0, 10, 5, 90, 1, 100), Array.Empty<TelemetryChart>()));
+                new TelemetrySummary(1, 0, 10, 5, 90, 1, 100), Array.Empty<TelemetryChart>(),
+                new RenderPoolSnapshot(3, 2, 1, 0, 0, 0, 3, 10, 0, 1, 0, 100, 110, true)));
     }
 
     private sealed class FakeStaffAuthorization : IAdminStaffAuthorizationService

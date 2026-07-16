@@ -476,7 +476,7 @@ public class AdminApiService : ServiceBase
 
         if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Video)
         {
-            assets.RenderAsset(item.id, item.assetType);
+            await assets.QueueAssetRenderAsync(item.id, item.assetType);
         }
         else if (item.content_url != null)
         {
@@ -550,12 +550,6 @@ public class AdminApiService : ServiceBase
                     continue;
 
                 item.creatorName = creatorName;
-
-                if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Video)
-                {
-                    assets.RenderAsset(item.id, item.assetType);
-                    continue;
-                }
 
                 if (item.content_url != null)
                 {
@@ -1855,7 +1849,7 @@ Thank you for your understanding,
     public async Task RequestAssetReRenderAsync(ReRenderRequest request)
     {
         var details = await assets.GetAssetCatalogInfo(request.assetId);
-        assets.RenderAsset(request.assetId, details.assetType);
+        await assets.QueueAssetRenderAsync(request.assetId, details.assetType);
     }
 
     private sealed class BuggedRenderAssetRow
@@ -1893,7 +1887,7 @@ Thank you for your understanding,
 
         foreach (var row in rows)
         {
-            assets.RenderAsset(row.assetId, row.assetType);
+            await assets.QueueAssetRenderAsync(row.assetId, row.assetType);
         }
 
         return new FixBuggedRendersResponse
@@ -2047,7 +2041,7 @@ Thank you for your understanding,
         if (info.assetType == Type.Package)
             throw new StaffException("Cannot create an asset version for this type");
         var result = await assets.CreateAssetVersion(request.assetId, 1, request.rbxm.OpenReadStream());
-        assets.RenderAsset(request.assetId, info.assetType);
+        await assets.QueueAssetRenderAsync(request.assetId, info.assetType);
         return new AssetVersionWithIdEntry
         {
             assetId = result.assetId,
@@ -2268,7 +2262,7 @@ Thank you for your understanding,
 
             foreach (var id in packageAssetIds.Distinct())
                 await assets.InsertPackageAsset(assetDetails.assetId, id);
-            assets.RenderAsset(assetDetails.assetId, request.assetTypeId);
+            await assets.QueueAssetRenderAsync(assetDetails.assetId, request.assetTypeId);
         }
 
         await assets.SetItemPrice(assetDetails.assetId, request.price, null);
@@ -2704,7 +2698,7 @@ Thank you for your understanding,
                     disableRender: true);
 
                 await UpdateCreatedBulkCopyAssetAsync(assetDetails.assetId, candidate, request, actor);
-                assets.RenderAsset(assetDetails.assetId, candidate.Details.AssetTypeId.Value);
+                await assets.QueueAssetRenderAsync(assetDetails.assetId, candidate.Details.AssetTypeId.Value);
                 resultByRobloxAssetId[candidate.RobloxAssetId] = CreateBulkCopySuccess(candidate.RobloxAssetId, assetDetails.assetId, candidate.PriceRobux, false);
             }
             catch (Exception ex)
@@ -2813,8 +2807,8 @@ Thank you for your understanding,
                     disableRender: true);
 
                 await UpdateCreatedBulkCopyAssetAsync(assetDetails.assetId, candidate, request, actor);
-                assets.RenderAsset(meshAsset.assetId, Type.Mesh);
-                assets.RenderAsset(assetDetails.assetId, candidate.Details.AssetTypeId.Value);
+                await assets.QueueAssetRenderAsync(meshAsset.assetId, Type.Mesh);
+                await assets.QueueAssetRenderAsync(assetDetails.assetId, candidate.Details.AssetTypeId.Value);
                 resultByRobloxAssetId[candidate.RobloxAssetId] = CreateBulkCopySuccess(candidate.RobloxAssetId, assetDetails.assetId, candidate.PriceRobux, false);
             }
             catch (Exception ex)

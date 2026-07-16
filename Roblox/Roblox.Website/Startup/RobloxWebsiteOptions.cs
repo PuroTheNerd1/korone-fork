@@ -110,6 +110,8 @@ public sealed class RobloxJwtOptions
 public sealed class RobloxRenderOptions
 {
     public string BaseUrl { get; set; } = string.Empty;
+    public bool UseBinaryTransport { get; set; } = true;
+    public bool UseDurableAssetQueue { get; set; } = true;
 }
 
 public sealed class RobloxTwitterOptions

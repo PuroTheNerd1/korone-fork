@@ -975,10 +975,10 @@ public class AvatarService : ServiceBase, IService {
         using var cancellation = new CancellationTokenSource();
         cancellation.CancelAfter(TimeSpan.FromMinutes(2));
 
-        var headshotTask = RenderingHandler.RequestHeadshotThumbnail(userId, cancellation.Token);
+        var headshotTask = RenderingHandler.RequestHeadshotThumbnail(userId, cancellation.Token, avatarHash);
         var renderRigType = avatarType == AvatarType.R6 ? AvatarRigType.R6 : AvatarRigType.R15;
-        var thumbnailTask = RenderingHandler.RequestPlayerThumbnail(userId, renderRigType, cancellation.Token);
-        var thumbnail3DTask = RenderingHandler.RequestPlayerThumbnail3D(userId, cancellation.Token); // Start 3D render early
+        var thumbnailTask = RenderingHandler.RequestPlayerThumbnail(userId, renderRigType, cancellation.Token, avatarHash);
+        var thumbnail3DTask = RenderingHandler.RequestPlayerThumbnail3D(userId, cancellation.Token, avatarHash); // Start 3D render early
 
         try
         {

@@ -60,7 +60,8 @@ public static class RobloxServiceInfrastructure
         {
             RenderHttpClient.Configure(
                 renderBaseUrl,
-                Roblox.Configuration.ArbiterAuthorization);
+                Roblox.Configuration.ArbiterAuthorization,
+                configuration.GetValue("Render:UseBinaryTransport", true));
         }
     }
 }

@@ -1,4 +1,6 @@
 using Korone.RccServiceArbiter.Rcc;
+using System.Net;
+using System.Text;
 using Xunit;
 
 namespace Korone.RccServiceArbiter.Tests;
@@ -89,5 +91,35 @@ public sealed class RccSoapEnvelopeTests
         var values = RccSoapClient.ParseBatchJobResponse(xml);
         Assert.Equal(2, values.Count); Assert.Equal("aW1hZ2U=", values[0].Value);
         Assert.Single(values[1].Table); Assert.Equal("https://example.test/asset", values[1].Table[0].Value);
+    }
+
+    [Fact]
+    public async Task BatchRender_StreamsAndDecodesLargeBase64Payload()
+    {
+        var expected = Enumerable.Range(0, 2 * 1024 * 1024).Select(index => (byte)(index % 251)).ToArray();
+        var xml = $"""
+            <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><BatchJobResponse>
+              <BatchJobResult><type>LUA_TSTRING</type><value>{Convert.ToBase64String(expected)}</value><table /></BatchJobResult>
+              <BatchJobResult><type>LUA_TTABLE</type><value></value><table>
+                <LuaValue><type>LUA_TSTRING</type><value>https://origin.test/asset/1</value><table /></LuaValue>
+              </table></BatchJobResult>
+            </BatchJobResponse></soap:Body></soap:Envelope>
+            """;
+        using var http = new HttpClient(new StaticSoapHandler(xml));
+        var client = new RccSoapClient(http, new Uri("http://127.0.0.1:45000/"), ServiceUrl);
+
+        var result = await client.BatchRenderAsync(new Job { Id = "render", Cores = 1, ExpirationInSeconds = 60 },
+            new ScriptExecution { Name = "render", Script = "return true" }, true, false,
+            3 * 1024 * 1024, TestContext.Current.CancellationToken);
+
+        Assert.Equal(expected, result.Data);
+        Assert.Contains("https://origin.test/asset/1", result.DependencyUrls);
+    }
+
+    private sealed class StaticSoapHandler(string body) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            { Content = new StringContent(body, Encoding.UTF8, "text/xml") });
     }
 }

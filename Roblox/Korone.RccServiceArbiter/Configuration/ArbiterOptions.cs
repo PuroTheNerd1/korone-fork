@@ -46,8 +46,13 @@ public sealed class ArbiterRenderOptions
 {
     [Range(2000, 2100)] public int DefaultYear { get; set; } = 2018;
     [Range(1, 256)] public int MaxWorkers { get; set; } = 8;
-    [Range(0, 256)] public int IdleReserve { get; set; } = 2;
+    [Range(0, 256)] public int MinimumWarmWorkers { get; set; } = 3;
+    [Range(1, 256)] public int MaximumIdleWorkers { get; set; } = 8;
     [Range(1, 10000)] public int QueueCapacity { get; set; } = 128;
+    [Range(1, 10000)] public int InteractiveQueueCapacity { get; set; } = 64;
+    [Range(1, 10000)] public int BackgroundQueueCapacity { get; set; } = 128;
+    [Range(1, 10000)] public int ConversionQueueCapacity { get; set; } = 8;
+    [Range(1, 16)] public int ConversionConcurrency { get; set; } = 2;
     [Range(1, 1000)] public int MaxReuseCount { get; set; } = 50;
     [Range(1, 3600)] public int IdleTtlSeconds { get; set; } = 300;
     [Range(1, 300)] public int JobTimeoutSeconds { get; set; } = 60;
@@ -55,6 +60,8 @@ public sealed class ArbiterRenderOptions
     [Range(1, 1024)] public int MaxInputMegabytes { get; set; } = 250;
     [Range(1, 1024)] public int MaxOutputMegabytes { get; set; } = 64;
     public string PlaceConverterPath { get; set; } = "RobloxPlaceConverter.exe";
+    public string OriginBaseUrl { get; set; } = string.Empty;
+    public bool UseBinaryTransport { get; set; } = true;
 }
 
 public sealed class ArbiterPortOptions

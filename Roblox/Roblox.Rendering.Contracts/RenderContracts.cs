@@ -35,6 +35,14 @@ public enum AvatarRigType
     R15,
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum RenderPriority
+{
+    Interactive,
+    Background,
+    Conversion,
+}
+
 public sealed class RenderRequest
 {
     public RenderKind Kind { get; set; }
@@ -52,6 +60,11 @@ public sealed class RenderRequest
     public string? AnimationUrl { get; set; }
     public string? InputData { get; set; }
     public AvatarData? Avatar { get; set; }
+    public RenderPriority Priority { get; set; } = RenderPriority.Interactive;
+    public string? WorkKey { get; set; }
+    public int? DeadlineSeconds { get; set; }
+    [JsonIgnore]
+    public string? CorrelationId { get; set; }
 }
 
 public sealed class RenderResult

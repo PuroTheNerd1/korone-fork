@@ -7,14 +7,26 @@ using Roblox.Web.Infrastructure;
 using Roblox.Web.Infrastructure.Admin;
 
 var builder = WebApplication.CreateBuilder(args);
+Roblox.Services.Assets.AssetRenderQueue.Configure(builder.Configuration.GetValue("Render:UseDurableAssetQueue", true));
 
 builder.AddRobloxServiceDefaults("Roblox.Services.Admin", ServiceExposure.InternalService);
 await FeatureFlags.RefreshOnceAsync();
 builder.Services.AddSingleton<IAdminStaffAuthorizationService, AdminStaffAuthorizationService>();
 builder.Services.AddSingleton<IAdminTwoFactorStore, AdminTwoFactorStore>();
 builder.Services.AddHostedService<FeatureFlagRefreshHostedService>();
+builder.Services.AddHostedService<Roblox.Services.Assets.AssetRenderQueueWorker>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddHttpClient<IRenderStatisticsClient, ArbiterRenderStatisticsClient>((serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var baseUrl = configuration["Render:BaseUrl"] ?? "http://127.0.0.1:3521/";
+    client.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/");
+    client.Timeout = TimeSpan.FromSeconds(2);
+    var authorization = configuration["ArbiterAuthorization"] ?? configuration["Authorization"];
+    if (!string.IsNullOrWhiteSpace(authorization))
+        client.DefaultRequestHeaders.TryAddWithoutValidation("rblx-authorization", authorization);
+});
 builder.Services.AddHttpClient<ITelemetryQueryService, PrometheusTelemetryQueryService>((serviceProvider, client) =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();

@@ -35,12 +35,15 @@ public sealed class PrometheusTelemetryQueryService : ITelemetryQueryService
     private readonly HttpClient _client;
     private readonly IMemoryCache _cache;
     private readonly TimeProvider _timeProvider;
+    private readonly IRenderStatisticsClient? _renderStatistics;
 
-    public PrometheusTelemetryQueryService(HttpClient client, IMemoryCache cache, TimeProvider timeProvider)
+    public PrometheusTelemetryQueryService(HttpClient client, IMemoryCache cache, TimeProvider timeProvider,
+        IRenderStatisticsClient? renderStatistics = null)
     {
         _client = client;
         _cache = cache;
         _timeProvider = timeProvider;
+        _renderStatistics = renderStatistics;
     }
 
     public async Task<TelemetryDashboardResponse> GetDashboardAsync(string range, string service, CancellationToken cancellationToken)
@@ -73,6 +76,7 @@ public sealed class PrometheusTelemetryQueryService : ITelemetryQueryService
             .OrderBy(point => point.Timestamp)
             .LastOrDefault()?.Value;
 
+        var renderPool = _renderStatistics == null ? null : await _renderStatistics.GetAsync(cancellationToken);
         var response = new TelemetryDashboardResponse(
             now.UtcDateTime,
             range.ToLowerInvariant(),
@@ -80,7 +84,8 @@ public sealed class PrometheusTelemetryQueryService : ITelemetryQueryService
             service,
             services,
             new TelemetrySummary(Last("requests"), Last("errors"), Last("request_p95"), Last("database_p95"), Last("cache_hits"), Last("signups"), Last("robux")),
-            charts);
+            charts,
+            renderPool);
         _cache.Set(cacheKey, response, TimeSpan.FromSeconds(15));
         return response;
     }

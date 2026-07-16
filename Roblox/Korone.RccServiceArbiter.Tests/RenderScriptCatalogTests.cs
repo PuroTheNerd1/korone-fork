@@ -77,6 +77,30 @@ public sealed class RenderScriptCatalogTests
         Assert.Equal(10, arguments.GetArrayLength());
     }
 
+    [Fact]
+    public void PrivateOrigin_RewritesDependencyHostsAndAddsCorrelationId()
+    {
+        var catalog = new RenderScriptCatalog(Options.Create(new ArbiterOptions
+        {
+            BaseUrl = "https://public.example.test",
+            Render = new ArbiterRenderOptions { DefaultYear = 2020, OriginBaseUrl = "http://10.0.0.20:8080" },
+        }));
+        var execution = catalog.Create(new RenderRequest
+        {
+            Kind = RenderKind.Avatar,
+            UserId = 456,
+            CharacterAppearanceUrl = "https://api.public.test/v1/avatar?userId=456",
+            CorrelationId = "render-abc",
+        });
+        using var document = JsonDocument.Parse(execution.Script);
+        var arguments = document.RootElement.GetProperty("Settings").GetProperty("Arguments");
+
+        var appearance = new Uri(arguments[1].GetString()!);
+        Assert.Equal("10.0.0.20", appearance.Host);
+        Assert.Equal(8080, appearance.Port);
+        Assert.Contains("renderCorrelationId=render-abc", appearance.Query);
+    }
+
     private static RenderScriptCatalog CreateCatalog() => new(Options.Create(new ArbiterOptions
     { BaseUrl = "https://example.test", Render = new ArbiterRenderOptions { DefaultYear = 2020 } }));
 }

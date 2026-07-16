@@ -100,14 +100,15 @@ public static class RobloxWebsiteBuilderExtensions
         var arbiterUrl = string.IsNullOrWhiteSpace(options.Render.BaseUrl)
             ? $"https://arbiter.{Roblox.Configuration.ShortBaseUrl}/"
             : options.Render.BaseUrl;
-        CommandHandler.Configure(arbiterUrl, options.ArbiterAuthorization);
+        CommandHandler.Configure(arbiterUrl, options.ArbiterAuthorization, options.Render.UseBinaryTransport);
         Roblox.Services.Signer.SignService.Setup();
 
-        RenderingHandler.Configure(arbiterUrl, options.ArbiterAuthorization);
+        RenderingHandler.Configure(arbiterUrl, options.ArbiterAuthorization, options.Render.UseBinaryTransport);
     }
 
     public static IServiceCollection AddRobloxWebsiteServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
+        Roblox.Services.Assets.AssetRenderQueue.Configure(configuration.GetValue("Render:UseDurableAssetQueue", true));
         services.AddRobloxTelemetry(configuration, "Roblox.Website", environment.EnvironmentName);
         services.AddRazorPages();
         services.AddRobloxWebInfrastructure(configuration);
@@ -156,6 +157,7 @@ public static class RobloxWebsiteBuilderExtensions
 
         services.AddHostedService<FeatureFlagRefreshHostedService>();
         services.AddHostedService<AvatarThumbnailCleanupHostedService>();
+        services.AddHostedService<Roblox.Services.Assets.AssetRenderQueueWorker>();
 
         return services;
     }

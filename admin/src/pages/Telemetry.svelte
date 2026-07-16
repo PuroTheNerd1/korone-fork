@@ -6,6 +6,11 @@
 
 	type Point = { Timestamp: string; Value: number };
 	type Series = { Name: string; Points: Point[] };
+	type RenderPool = {
+		WorkerCount: number; IdleWorkerCount: number; RunningJobs: number;
+		InteractiveQueuedJobs: number; BackgroundQueuedJobs: number; ConversionQueuedJobs: number;
+		AverageRccMilliseconds: number; Ready: boolean;
+	};
 	type Dashboard = {
 		GeneratedAt: string;
 		Range: string;
@@ -14,6 +19,7 @@
 		AvailableServices: string[];
 		Summary: Record<string, number | null>;
 		Charts: { Key: string; Title: string; Unit: string; Series: Series[] }[];
+		RenderPool: RenderPool | null;
 	};
 
 	let dashboard: Dashboard | undefined;
@@ -92,6 +98,15 @@
 				</div></div></div>
 			{/each}
 		</div>
+		{#if dashboard.RenderPool}
+			<h2 class="h4 mt-2">RCC render pool</h2>
+			<div class="row">
+				<div class="col-6 col-lg-3 mb-3"><div class="card mod-card-dark h-100"><div class="card-body"><h3>{dashboard.RenderPool.WorkerCount}</h3><small class="text-muted">Workers ({dashboard.RenderPool.IdleWorkerCount} idle)</small></div></div></div>
+				<div class="col-6 col-lg-3 mb-3"><div class="card mod-card-dark h-100"><div class="card-body"><h3>{dashboard.RenderPool.RunningJobs}</h3><small class="text-muted">Active renders</small></div></div></div>
+				<div class="col-6 col-lg-3 mb-3"><div class="card mod-card-dark h-100"><div class="card-body"><h3>{dashboard.RenderPool.InteractiveQueuedJobs + dashboard.RenderPool.BackgroundQueuedJobs + dashboard.RenderPool.ConversionQueuedJobs}</h3><small class="text-muted">Queued renders</small></div></div></div>
+				<div class="col-6 col-lg-3 mb-3"><div class="card mod-card-dark h-100"><div class="card-body"><h3>{format(dashboard.RenderPool.AverageRccMilliseconds, 0, " ms")}</h3><small class="text-muted">Average RCC duration</small></div></div></div>
+			</div>
+		{/if}
 		{#if dashboard.Charts.every(chart => chart.Series.every(item => item.Points.length === 0))}
 			<div class="alert alert-info">No telemetry was recorded for this service and time range.</div>
 		{:else}

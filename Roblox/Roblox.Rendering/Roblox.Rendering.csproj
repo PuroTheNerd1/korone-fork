@@ -14,7 +14,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Roblox.Rendering.Contracts\Roblox.Rendering.Contracts.csproj" />
-      <ProjectReference Include="..\Roblox.Metrics\Roblox.Metrics.csproj" />
     </ItemGroup>
 
 </Project>

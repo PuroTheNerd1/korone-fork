@@ -15,7 +15,36 @@ public sealed class RenderController(IRenderService renderer) : ControllerBase
     {
         try
         {
-            return Ok(await renderer.RenderAsync(request, cancellationToken));
+            var output = await renderer.RenderAsync(request, cancellationToken);
+            return Ok(new RenderResult
+            {
+                JobId = output.JobId,
+                ContentType = output.ContentType,
+                Data = Convert.ToBase64String(output.Data),
+                DependencyUrls = output.DependencyUrls,
+            });
+        }
+        catch (RenderValidationException ex) { return Error(StatusCodes.Status400BadRequest, ex.Message); }
+        catch (RenderCapacityException ex) { return Error(StatusCodes.Status429TooManyRequests, ex.Message); }
+        catch (TimeoutException ex) { return Error(StatusCodes.Status504GatewayTimeout, ex.Message); }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception ex) { return Error(StatusCodes.Status502BadGateway, ex.Message); }
+    }
+
+    [HttpPost("render/v2")]
+    public async Task<IActionResult> RenderV2([FromBody] RenderRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var output = await renderer.RenderAsync(request, cancellationToken);
+            Response.Headers["X-Render-Job-Id"] = output.JobId.ToString("D");
+            Response.Headers["X-Render-Worker-State"] = output.WorkerState;
+            if (output.Timings.Count > 0)
+            {
+                Response.Headers["Server-Timing"] = string.Join(", ", output.Timings.Select(pair =>
+                    $"{pair.Key};dur={pair.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}"));
+            }
+            return File(output.Data, output.ContentType);
         }
         catch (RenderValidationException ex) { return Error(StatusCodes.Status400BadRequest, ex.Message); }
         catch (RenderCapacityException ex) { return Error(StatusCodes.Status429TooManyRequests, ex.Message); }

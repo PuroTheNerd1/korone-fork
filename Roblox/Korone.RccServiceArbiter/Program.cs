@@ -22,7 +22,7 @@ builder.Services.Configure<HealthCheckServiceOptions>(options =>
     }
 });
 builder.Services.AddHealthChecks()
-    .AddCheck("arbiter", () => HealthCheckResult.Healthy(), tags: new[] { "ready" });
+    .AddCheck<RenderReadinessHealthCheck>("arbiter-render", tags: new[] { "ready" });
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -32,6 +32,10 @@ builder.Services.AddControllers()
 builder.Services.AddOptions<ArbiterOptions>()
     .Bind(builder.Configuration.GetSection("Arbiter"))
     .ValidateDataAnnotations()
+    .Validate(options => options.Render.MinimumWarmWorkers <= options.Render.MaxWorkers,
+        "MinimumWarmWorkers cannot exceed MaxWorkers")
+    .Validate(options => options.Render.MaximumIdleWorkers <= options.Render.MaxWorkers,
+        "MaximumIdleWorkers cannot exceed MaxWorkers")
     .ValidateOnStart();
 builder.Services.AddSingleton<IArbiterClock, SystemArbiterClock>();
 builder.Services.AddSingleton<IPortAllocator, PortAllocator>();

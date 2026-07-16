@@ -45,9 +45,11 @@ public sealed class RenderScriptCatalog : IRenderScriptCatalog
 
     private string CreateModernJson(RenderRequest request)
     {
-        var baseUrl = _options.BaseUrl.TrimEnd('/');
-        var assetUrl = request.AssetUrl ?? AssetUrl(request.AssetId);
-        var appearanceUrl = request.CharacterAppearanceUrl ?? $"{baseUrl}/v1.1/avatar-fetch?placeId=0&userId={request.UserId}";
+        var baseUrl = OriginBaseUrl();
+        var assetUrl = request.AssetUrl == null ? AssetUrl(request.AssetId, request) : PrivateDependencyUrl(request.AssetUrl, request);
+        var appearanceUrl = request.CharacterAppearanceUrl == null
+            ? Correlate($"{baseUrl}/v1.1/avatar-fetch?placeId=0&userId={request.UserId}", request)
+            : PrivateDependencyUrl(request.CharacterAppearanceUrl, request);
         var format = request.Kind == RenderKind.Avatar3D ? "OBJ" : "PNG";
         var type = request.Kind switch
         {
@@ -76,11 +78,11 @@ public sealed class RenderScriptCatalog : IRenderScriptCatalog
             RenderKind.AvatarHeadshot => [baseUrl, appearanceUrl, "PNG", request.Width, request.Height, true, 40, 60, 0, 0],
             RenderKind.Texture => [request.AssetId ?? 0, baseUrl, "PNG", request.Width, request.Height, true, 0, 0, 0, 0],
             RenderKind.Head => [assetUrl, "PNG", request.Width, request.Height, baseUrl, 420, true, 0, 0, 0, 0],
-            RenderKind.Package => [request.AssetUrls ?? string.Empty, baseUrl, "PNG", request.Width, request.Height, AssetUrl(1785197), string.Empty, true, 0, 0, 0, 0],
-            RenderKind.BodyPart => [assetUrl, baseUrl, "PNG", request.Width, request.Height, AssetUrl(1785197), string.Empty],
+            RenderKind.Package => [PrivateDependencyUrls(request.AssetUrls, request), baseUrl, "PNG", request.Width, request.Height, AssetUrl(1785197, request), string.Empty, true, 0, 0, 0, 0],
+            RenderKind.BodyPart => [assetUrl, baseUrl, "PNG", request.Width, request.Height, AssetUrl(1785197, request), string.Empty],
             RenderKind.Clothing => [assetUrl, "PNG", request.Width, request.Height, baseUrl, 1785197, true, 0, 0, 0, 0],
             RenderKind.Place => [assetUrl, "PNG", request.Width, request.Height, baseUrl, request.AssetId ?? 0, baseUrl, 1],
-            RenderKind.Animation => [request.CharacterAppearanceUrl, baseUrl, "PNG", request.Width, request.Height, request.AnimationUrl],
+            RenderKind.Animation => [appearanceUrl, baseUrl, "PNG", request.Width, request.Height, PrivateDependencyUrl(request.AnimationUrl, request)],
             RenderKind.AnimationSilhouette => [assetUrl, baseUrl, request.Width, request.Height],
             _ => [assetUrl, "PNG", request.Width, request.Height, baseUrl, true, 0, 0, 0, 0],
         };
@@ -115,18 +117,19 @@ public sealed class RenderScriptCatalog : IRenderScriptCatalog
 
     private IReadOnlyList<LuaValue> BuildArguments(RenderRequest request)
     {
-        var assetUrl = request.AssetUrl ?? AssetUrl(request.AssetId);
+        var assetUrl = request.AssetUrl == null ? AssetUrl(request.AssetId, request) : PrivateDependencyUrl(request.AssetUrl, request);
         var appearance = request.CharacterAppearanceUrl ??
-                         $"{_options.BaseUrl.TrimEnd('/')}/v1.1/avatar-fetch?userId={request.UserId}";
-        var common = new[] { String(assetUrl), String("PNG"), Number(request.Width), Number(request.Height), String(_options.BaseUrl) };
+                         Correlate($"{OriginBaseUrl()}/v1.1/avatar-fetch?userId={request.UserId}", request);
+        appearance = PrivateDependencyUrl(appearance, request);
+        var common = new[] { String(assetUrl), String("PNG"), Number(request.Width), Number(request.Height), String(OriginBaseUrl()) };
         return request.Kind switch
         {
-            RenderKind.Avatar => [String(appearance), String(_options.BaseUrl), String("PNG"), Number(request.Width), Number(request.Height)],
-            RenderKind.AvatarHeadshot => [String(_options.BaseUrl), String(appearance), String("PNG"), Number(request.Width), Number(request.Height), Bool(true), Number(30), Number(100), Number(0), Number(0)],
+            RenderKind.Avatar => [String(appearance), String(OriginBaseUrl()), String("PNG"), Number(request.Width), Number(request.Height)],
+            RenderKind.AvatarHeadshot => [String(OriginBaseUrl()), String(appearance), String("PNG"), Number(request.Width), Number(request.Height), Bool(true), Number(30), Number(100), Number(0), Number(0)],
             RenderKind.Head or RenderKind.Clothing => [.. common, Number(420)],
             RenderKind.Place => [.. common, Number(request.AssetId ?? 0)],
-            RenderKind.Package => [String(request.AssetUrls ?? string.Empty), String(_options.BaseUrl), String("PNG"), Number(request.Width), Number(request.Height), String(AssetUrl(1785197)), String(string.Empty)],
-            RenderKind.Animation => [String(request.CharacterAppearanceUrl ?? string.Empty), String(request.AnimationUrl ?? string.Empty), String("PNG"), Number(request.Width), Number(request.Height), String(_options.BaseUrl)],
+            RenderKind.Package => [String(PrivateDependencyUrls(request.AssetUrls, request)), String(OriginBaseUrl()), String("PNG"), Number(request.Width), Number(request.Height), String(AssetUrl(1785197, request)), String(string.Empty)],
+            RenderKind.Animation => [String(PrivateDependencyUrl(request.CharacterAppearanceUrl, request)), String(PrivateDependencyUrl(request.AnimationUrl, request)), String("PNG"), Number(request.Width), Number(request.Height), String(OriginBaseUrl())],
             _ => common,
         };
     }
@@ -148,7 +151,25 @@ public sealed class RenderScriptCatalog : IRenderScriptCatalog
         _ => throw new RenderValidationException($"Render kind {kind} is not an RCC thumbnail operation"),
     };
 
-    private string AssetUrl(long? assetId) => $"{_options.BaseUrl.TrimEnd('/')}/asset/?id={assetId ?? 0}";
+    private string AssetUrl(long? assetId, RenderRequest request) => Correlate($"{OriginBaseUrl()}/asset/?id={assetId ?? 0}", request);
+    private string PrivateDependencyUrls(string? urls, RenderRequest request) => string.Join(";",
+        (urls ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries).Select(url => PrivateDependencyUrl(url, request)));
+    private string PrivateDependencyUrl(string? url, RenderRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var parsed)) return Correlate(url, request);
+        var origin = new Uri(OriginBaseUrl() + "/");
+        var rewritten = new UriBuilder(parsed) { Scheme = origin.Scheme, Host = origin.Host, Port = origin.IsDefaultPort ? -1 : origin.Port };
+        return Correlate(rewritten.Uri.ToString(), request);
+    }
+    private static string Correlate(string url, RenderRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.CorrelationId)) return url;
+        return url + (url.Contains('?') ? "&" : "?") + "renderCorrelationId=" + Uri.EscapeDataString(request.CorrelationId);
+    }
+    private string OriginBaseUrl() => (string.IsNullOrWhiteSpace(_options.Render.OriginBaseUrl)
+        ? _options.BaseUrl
+        : _options.Render.OriginBaseUrl).TrimEnd('/');
     private string GetScript(string fileName) => _scripts.FirstOrDefault(pair => pair.Key.EndsWith(fileName, StringComparison.OrdinalIgnoreCase)).Value
         ?? throw new RenderExecutionException($"Embedded render script {fileName} was not found");
     private static LuaValue String(string value) => new() { Type = LuaType.LUA_TSTRING, Value = value };

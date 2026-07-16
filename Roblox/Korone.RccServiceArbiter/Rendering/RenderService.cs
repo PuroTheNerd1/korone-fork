@@ -12,7 +12,8 @@ public sealed class RenderService : IRenderService, IDisposable
 {
     private readonly object _workersGate = new();
     private readonly List<RenderWorker> _idle = [];
-    private readonly SemaphoreSlim _slots;
+    private readonly PriorityRenderGate _renderGate;
+    private readonly SemaphoreSlim _conversionSlots;
     private readonly ArbiterOptions _options;
     private readonly IPortAllocator _ports;
     private readonly IRccProcessLauncher _launcher;
@@ -20,11 +21,21 @@ public sealed class RenderService : IRenderService, IDisposable
     private readonly IRccSoapClientFactory _soapFactory;
     private readonly IRenderScriptCatalog _scripts;
     private readonly ILogger<RenderService> _logger;
+    private readonly ConcurrentDictionary<string, Lazy<Task<RenderOutput>>> _inflight = new(StringComparer.Ordinal);
     private int _workerCount;
-    private int _queued;
     private int _running;
+    private int _conversionQueued;
     private long _completed;
     private long _failed;
+    private long _coldStarts;
+    private long _reusedWorkers;
+    private long _coalesced;
+    private long _retries;
+    private long _outputBytes;
+    private long _queueMilliseconds;
+    private long _rccMilliseconds;
+    private long _totalMilliseconds;
+    private volatile bool _ready;
 
     public RenderService(IOptions<ArbiterOptions> options, IPortAllocator ports, IRccProcessLauncher launcher,
         IRccReadinessProbe readiness, IRccSoapClientFactory soapFactory, IRenderScriptCatalog scripts,
@@ -37,102 +48,191 @@ public sealed class RenderService : IRenderService, IDisposable
         _soapFactory = soapFactory;
         _scripts = scripts;
         _logger = logger;
-        _slots = new SemaphoreSlim(_options.Render.MaxWorkers, _options.Render.MaxWorkers);
+        _renderGate = new PriorityRenderGate(_options.Render.MaxWorkers,
+            _options.Render.InteractiveQueueCapacity, _options.Render.BackgroundQueueCapacity);
+        _conversionSlots = new SemaphoreSlim(_options.Render.ConversionConcurrency, _options.Render.ConversionConcurrency);
     }
 
-    public async Task<RenderResult> RenderAsync(RenderRequest request, CancellationToken cancellationToken)
+    public bool IsReady => _ready;
+
+    public async Task<RenderOutput> RenderAsync(RenderRequest request, CancellationToken cancellationToken)
     {
         Validate(request);
-        var queued = Interlocked.Increment(ref _queued);
-        if (queued > _options.Render.QueueCapacity + _options.Render.MaxWorkers)
+        if (string.IsNullOrWhiteSpace(request.WorkKey))
+            return await RenderCoreAsync(request, cancellationToken);
+
+        var workKey = $"{request.Kind}:{request.Width}x{request.Height}:{request.AvatarRigType}:{request.WorkKey}";
+        if (workKey.Length > 256) throw new RenderValidationException("workKey is too long");
+        var candidate = new Lazy<Task<RenderOutput>>(
+            () => RenderCoreAsync(request, CancellationToken.None), LazyThreadSafetyMode.ExecutionAndPublication);
+        var shared = _inflight.GetOrAdd(workKey, candidate);
+        if (!ReferenceEquals(candidate, shared))
         {
-            Interlocked.Decrement(ref _queued);
-            throw new RenderCapacityException("Render queue is full");
+            Interlocked.Increment(ref _coalesced);
         }
 
         try
         {
-            await _slots.WaitAsync(cancellationToken);
+            return await shared.Value.WaitAsync(cancellationToken);
         }
         finally
         {
-            Interlocked.Decrement(ref _queued);
+            if (shared.IsValueCreated && shared.Value.IsCompleted) _inflight.TryRemove(workKey, out _);
         }
+    }
 
-        Interlocked.Increment(ref _running);
-        RenderWorker? worker = null;
-        var healthy = false;
+    private async Task<RenderOutput> RenderCoreAsync(RenderRequest request, CancellationToken cancellationToken)
+    {
+        var totalWatch = Stopwatch.StartNew();
+        var totalSeconds = Math.Clamp(request.DeadlineSeconds ??
+            (_options.Render.JobTimeoutSeconds + _options.Processes.StartupTimeoutSeconds), 1, 300);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(totalSeconds));
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
+
         try
         {
+            RenderOutput output;
             if (request.Kind is RenderKind.PlaceConversion or RenderKind.HatConversion)
-            {
-                var converted = await ConvertAsync(request, cancellationToken);
-                Interlocked.Increment(ref _completed);
-                return converted;
-            }
+                output = await ExecuteConversionAsync(request, linked.Token);
+            else
+                output = await ExecuteRccAsync(request, linked.Token);
 
-            worker = await AcquireWorkerAsync(cancellationToken);
-            var script = _scripts.Create(request);
-            var jobId = Guid.NewGuid();
-            var job = new Job
-            {
-                Id = jobId.ToString(),
-                Category = 2,
-                Cores = 1,
-                ExpirationInSeconds = _options.Render.JobTimeoutSeconds,
-            };
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(_options.Render.JobTimeoutSeconds));
-            using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
-            IReadOnlyList<LuaValue> values;
-            try
-            {
-                values = _options.Render.DefaultYear >= 2018
-                    ? await worker.Soap.BatchJobAsync(job, script, linked.Token)
-                    : await worker.Soap.BatchJobExAsync(job, script, linked.Token);
-            }
-            catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
-            {
-                throw new TimeoutException("RCC render job timed out");
-            }
-
-            var data = values.FirstOrDefault()?.Value;
-            if (string.IsNullOrWhiteSpace(data))
-            {
-                throw new RenderExecutionException("RCC returned no render data");
-            }
-            if (request.Kind == RenderKind.Avatar3D)
-            {
-                data = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(data));
-            }
-            if (Base64DecodedLength(data) > _options.Render.MaxOutputMegabytes * 1024L * 1024L)
-            {
-                throw new RenderExecutionException("RCC render output exceeded the configured limit");
-            }
-
-            healthy = true;
-            worker.UseCount++;
-            worker.LastUsedUtc = DateTime.UtcNow;
             Interlocked.Increment(ref _completed);
-            return new RenderResult
-            {
-                JobId = jobId,
-                ContentType = request.Kind is RenderKind.Avatar3D ? "application/json" : "image/png",
-                Data = data,
-                DependencyUrls = values.Skip(1).SelectMany(value => value.Table).Select(value => value.Value)
-                    .Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().ToArray(),
-            };
+            Interlocked.Add(ref _totalMilliseconds, (long)totalWatch.Elapsed.TotalMilliseconds);
+            _logger.LogInformation("Render {RenderKind} completed in {TotalMilliseconds}ms on a {WorkerState} worker",
+                request.Kind, totalWatch.Elapsed.TotalMilliseconds, output.WorkerState);
+            return output;
+        }
+        catch (OperationCanceledException) when (deadline.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        {
+            Interlocked.Increment(ref _failed);
+            _logger.LogWarning("Render {RenderKind} timed out after {TotalMilliseconds}ms",
+                request.Kind, totalWatch.Elapsed.TotalMilliseconds);
+            throw new TimeoutException("Render request timed out");
         }
         catch
         {
             Interlocked.Increment(ref _failed);
             throw;
         }
+    }
+
+    private async Task<RenderOutput> ExecuteRccAsync(RenderRequest request, CancellationToken cancellationToken)
+    {
+        var queueWatch = Stopwatch.StartNew();
+        using var lease = await _renderGate.WaitAsync(request.Priority, cancellationToken);
+        queueWatch.Stop();
+        Interlocked.Add(ref _queueMilliseconds, (long)queueWatch.Elapsed.TotalMilliseconds);
+        Interlocked.Increment(ref _running);
+        try
+        {
+            Exception? firstFailure = null;
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                RenderWorker? worker = null;
+                var healthy = false;
+                try
+                {
+                    var acquireWatch = Stopwatch.StartNew();
+                    var acquired = await AcquireWorkerAsync(cancellationToken);
+                    worker = acquired.Worker;
+                    acquireWatch.Stop();
+                    var workerState = acquired.Cold ? "cold" : "warm";
+
+                    var jobId = Guid.NewGuid();
+                    request.CorrelationId = jobId.ToString("N");
+                    var script = _scripts.Create(request);
+                    var job = new Job
+                    {
+                        Id = jobId.ToString(), Category = 2, Cores = 1,
+                        ExpirationInSeconds = _options.Render.JobTimeoutSeconds,
+                    };
+                    var rccWatch = Stopwatch.StartNew();
+                    var renderResponse = await worker.Soap.BatchRenderAsync(job, script,
+                        _options.Render.DefaultYear >= 2018, request.Kind == RenderKind.Avatar3D,
+                        _options.Render.MaxOutputMegabytes * 1024 * 1024, cancellationToken);
+                    rccWatch.Stop();
+                    Interlocked.Add(ref _rccMilliseconds, (long)rccWatch.Elapsed.TotalMilliseconds);
+
+                    var decodeWatch = Stopwatch.StartNew();
+                    var data = renderResponse.Data;
+                    if (data.Length == 0) throw new RenderExecutionException("RCC returned no render data");
+                    decodeWatch.Stop();
+                    if (data.LongLength > _options.Render.MaxOutputMegabytes * 1024L * 1024L)
+                        throw new RenderExecutionException("RCC render output exceeded the configured limit");
+
+                    healthy = true;
+                    worker.UseCount++;
+                    worker.LastUsedUtc = DateTime.UtcNow;
+                    Interlocked.Add(ref _outputBytes, data.LongLength);
+                    return new RenderOutput
+                    {
+                        JobId = jobId,
+                        ContentType = request.Kind == RenderKind.Avatar3D ? "application/json" : "image/png",
+                        Data = data,
+                        WorkerState = workerState,
+                        DependencyUrls = renderResponse.DependencyUrls,
+                        Timings = new Dictionary<string, double>
+                        {
+                            ["queue"] = queueWatch.Elapsed.TotalMilliseconds,
+                            ["acquire"] = acquireWatch.Elapsed.TotalMilliseconds,
+                            ["rcc"] = rccWatch.Elapsed.TotalMilliseconds,
+                            ["decode"] = decodeWatch.Elapsed.TotalMilliseconds,
+                        },
+                    };
+                }
+                catch (Exception ex) when (attempt == 0 && ex is HttpRequestException or IOException)
+                {
+                    firstFailure = ex;
+                    Interlocked.Increment(ref _retries);
+                    _logger.LogWarning(ex, "RCC render attempt failed; retrying on a fresh worker");
+                }
+                finally
+                {
+                    if (worker != null) ReleaseWorker(worker, healthy);
+                }
+            }
+            throw firstFailure ?? new RenderExecutionException("RCC render failed");
+        }
         finally
         {
-            if (worker != null) ReleaseWorker(worker, healthy);
             Interlocked.Decrement(ref _running);
-            _slots.Release();
         }
+    }
+
+    private async Task<RenderOutput> ExecuteConversionAsync(RenderRequest request, CancellationToken cancellationToken)
+    {
+        var queued = Interlocked.Increment(ref _conversionQueued);
+        if (queued > _options.Render.ConversionQueueCapacity + _options.Render.ConversionConcurrency)
+        {
+            Interlocked.Decrement(ref _conversionQueued);
+            throw new RenderCapacityException("Conversion queue is full");
+        }
+        try { await _conversionSlots.WaitAsync(cancellationToken); }
+        finally { Interlocked.Decrement(ref _conversionQueued); }
+        try { return await ConvertAsync(request, cancellationToken); }
+        finally { _conversionSlots.Release(); }
+    }
+
+    public async Task EnsureWarmWorkersAsync(CancellationToken cancellationToken)
+    {
+        int desired;
+        lock (_workersGate)
+        {
+            desired = Math.Min(_options.Render.MinimumWarmWorkers - _idle.Count,
+                _options.Render.MaxWorkers - _workerCount);
+        }
+        if (desired <= 0) { _ready = true; return; }
+
+        var starts = Enumerable.Range(0, desired)
+            .Select(async _ => (await AcquireWorkerAsync(cancellationToken)).Worker).ToArray();
+        try { await Task.WhenAll(starts); }
+        finally
+        {
+            foreach (var start in starts.Where(start => start.IsCompletedSuccessfully))
+                ReleaseWorker(start.Result, true);
+        }
+        lock (_workersGate) _ready = _idle.Count >= Math.Min(_options.Render.MinimumWarmWorkers, _options.Render.MaxWorkers);
     }
 
     public RenderStatistics GetStatistics()
@@ -142,20 +242,36 @@ public sealed class RenderService : IRenderService, IDisposable
             return new RenderStatistics
             {
                 WorkerCount = _workerCount, IdleWorkerCount = _idle.Count, RunningJobs = Volatile.Read(ref _running),
-                QueuedJobs = Math.Max(0, Volatile.Read(ref _queued)), CompletedJobs = Interlocked.Read(ref _completed),
-                FailedJobs = Interlocked.Read(ref _failed), Capacity = _options.Render.MaxWorkers,
-                QueueCapacity = _options.Render.QueueCapacity,
+                QueuedJobs = _renderGate.Queued + Math.Max(0, Volatile.Read(ref _conversionQueued)),
+                CompletedJobs = Interlocked.Read(ref _completed), FailedJobs = Interlocked.Read(ref _failed),
+                Capacity = _options.Render.MaxWorkers, QueueCapacity = _options.Render.QueueCapacity,
+                ColdStarts = Interlocked.Read(ref _coldStarts), ReusedWorkers = Interlocked.Read(ref _reusedWorkers),
+                CoalescedRequests = Interlocked.Read(ref _coalesced), Ready = _ready,
+                Retries = Interlocked.Read(ref _retries), OutputBytes = Interlocked.Read(ref _outputBytes),
+                InteractiveQueuedJobs = _renderGate.InteractiveQueued,
+                BackgroundQueuedJobs = _renderGate.BackgroundQueued,
+                ConversionQueuedJobs = Math.Max(0, Volatile.Read(ref _conversionQueued)),
+                AverageQueueMilliseconds = Average(_queueMilliseconds, _completed + _failed),
+                AverageRccMilliseconds = Average(_rccMilliseconds, _completed),
+                AverageTotalMilliseconds = Average(_totalMilliseconds, _completed),
             };
         }
     }
 
+    private static double Average(long total, long count) => count == 0 ? 0 : (double)Interlocked.Read(ref total) / count;
+
     public int CleanUpIdleWorkers()
     {
-        List<RenderWorker> expired;
+        List<RenderWorker> expired = [];
         lock (_workersGate)
         {
-            expired = _idle.Where(worker => worker.Process.HasExited ||
-                worker.LastUsedUtc.AddSeconds(_options.Render.IdleTtlSeconds) <= DateTime.UtcNow).ToList();
+            foreach (var worker in _idle.OrderBy(worker => worker.LastUsedUtc).ToList())
+            {
+                var isDead = worker.Process.HasExited;
+                var isExcessAndExpired = _idle.Count - expired.Count > _options.Render.MinimumWarmWorkers &&
+                                         worker.LastUsedUtc.AddSeconds(_options.Render.IdleTtlSeconds) <= DateTime.UtcNow;
+                if (isDead || isExcessAndExpired) expired.Add(worker);
+            }
             _idle.RemoveAll(expired.Contains);
             _workerCount -= expired.Count;
         }
@@ -163,8 +279,10 @@ public sealed class RenderService : IRenderService, IDisposable
         return expired.Count;
     }
 
-    private async Task<RenderWorker> AcquireWorkerAsync(CancellationToken cancellationToken)
+    private async Task<(RenderWorker Worker, bool Cold)> AcquireWorkerAsync(CancellationToken cancellationToken)
     {
+        List<RenderWorker> dead = [];
+        RenderWorker? reusable = null;
         lock (_workersGate)
         {
             while (_idle.Count > 0)
@@ -172,21 +290,37 @@ public sealed class RenderService : IRenderService, IDisposable
                 var index = _idle.Count - 1;
                 var worker = _idle[index];
                 _idle.RemoveAt(index);
-                if (!worker.Process.HasExited) return worker;
+                if (!worker.Process.HasExited)
+                {
+                    Interlocked.Increment(ref _reusedWorkers);
+                    reusable = worker;
+                    break;
+                }
                 _workerCount--;
-                DisposeWorker(worker);
+                dead.Add(worker);
             }
-            _workerCount++;
+            if (reusable == null) _workerCount++;
         }
+        foreach (var worker in dead) DisposeWorker(worker);
+        if (reusable != null) return (reusable, false);
 
         var port = _ports.Allocate(_options.Ports.Rcc);
         IManagedProcess? process = null;
         try
         {
-            var executable = Path.Combine(_options.RccServiceRoot, $"RCCService{_options.Render.DefaultYear}", "RCCService.exe");
+            var executable = Path.Combine(_options.RccServiceRoot,
+                $"RCCService{_options.Render.DefaultYear}", "RCCService.exe");
+            var startWatch = Stopwatch.StartNew();
             process = _launcher.Start(executable, $"-console {port}", Path.GetDirectoryName(executable));
-            await _readiness.WaitUntilAvailableAsync(port, TimeSpan.FromSeconds(_options.Processes.StartupTimeoutSeconds), cancellationToken);
-            return new RenderWorker(port, process, _soapFactory.Create(port));
+            await _readiness.WaitUntilAvailableAsync(port,
+                TimeSpan.FromSeconds(_options.Processes.StartupTimeoutSeconds), cancellationToken);
+            var soap = _soapFactory.Create(port);
+            await soap.GetAllJobsAsync(cancellationToken);
+            startWatch.Stop();
+            Interlocked.Increment(ref _coldStarts);
+            _logger.LogInformation("Started and probed RCC worker on port {Port} in {StartMilliseconds}ms",
+                port, startWatch.Elapsed.TotalMilliseconds);
+            return (new RenderWorker(port, process, soap), true);
         }
         catch
         {
@@ -198,17 +332,36 @@ public sealed class RenderService : IRenderService, IDisposable
 
     private void ReleaseWorker(RenderWorker worker, bool healthy)
     {
-        var retain = healthy && !worker.Process.HasExited && worker.UseCount < _options.Render.MaxReuseCount;
+        var recycleAt = Math.Max(1, _options.Render.MaxReuseCount - 1);
+        var retain = healthy && !worker.Process.HasExited && worker.UseCount < recycleAt;
         var pooled = false;
         lock (_workersGate)
         {
-            if (retain && _idle.Count < _options.Render.IdleReserve) { _idle.Add(worker); pooled = true; }
+            if (retain && _idle.Count < _options.Render.MaximumIdleWorkers)
+            {
+                _idle.Add(worker);
+                pooled = true;
+            }
             else _workerCount--;
         }
-        if (!pooled) DisposeWorker(worker);
+        if (!pooled)
+        {
+            if (worker.UseCount >= recycleAt)
+                _logger.LogInformation("Recycling RCC worker on port {Port} after {UseCount} renders",
+                    worker.Port, worker.UseCount);
+            DisposeWorker(worker);
+            if (healthy && worker.UseCount >= recycleAt)
+                _ = RestoreWarmCapacityAsync();
+        }
     }
 
-    private async Task<RenderResult> ConvertAsync(RenderRequest request, CancellationToken cancellationToken)
+    private async Task RestoreWarmCapacityAsync()
+    {
+        try { await EnsureWarmWorkersAsync(CancellationToken.None); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Could not proactively replace a recycled RCC worker"); }
+    }
+
+    private async Task<RenderOutput> ConvertAsync(RenderRequest request, CancellationToken cancellationToken)
     {
         var bytes = Convert.FromBase64String(request.InputData!);
         var directory = Path.Combine(Path.GetTempPath(), "korone-render", Guid.NewGuid().ToString("N"));
@@ -223,9 +376,14 @@ public sealed class RenderService : IRenderService, IDisposable
             { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = directory })
                 ?? throw new RenderExecutionException("Could not start the place converter");
             await process.WaitForExitAsync(cancellationToken);
-            if (process.ExitCode != 0 || !File.Exists(output)) throw new RenderExecutionException($"Place converter exited with code {process.ExitCode}");
+            if (process.ExitCode != 0 || !File.Exists(output))
+                throw new RenderExecutionException($"Place converter exited with code {process.ExitCode}");
             var result = await File.ReadAllBytesAsync(output, cancellationToken);
-            return new RenderResult { JobId = Guid.NewGuid(), ContentType = "application/octet-stream", Data = Convert.ToBase64String(result) };
+            return new RenderOutput
+            {
+                JobId = Guid.NewGuid(), ContentType = "application/octet-stream", Data = result,
+                WorkerState = "converter",
+            };
         }
         finally { try { Directory.Delete(directory, true); } catch { } }
     }
@@ -237,23 +395,51 @@ public sealed class RenderService : IRenderService, IDisposable
         if (request.Kind is RenderKind.PlaceConversion or RenderKind.HatConversion)
         {
             if (string.IsNullOrWhiteSpace(request.InputData)) throw new RenderValidationException("inputData is required");
-            try { if (Base64DecodedLength(request.InputData) > _options.Render.MaxInputMegabytes * 1024L * 1024L) throw new RenderValidationException("Input exceeds configured limit"); }
+            try
+            {
+                if (Convert.FromBase64String(request.InputData).LongLength > _options.Render.MaxInputMegabytes * 1024L * 1024L)
+                    throw new RenderValidationException("Input exceeds configured limit");
+            }
             catch (FormatException) { throw new RenderValidationException("inputData must be valid base64"); }
         }
         else if (request.Kind is RenderKind.Avatar or RenderKind.AvatarHeadshot or RenderKind.Avatar3D)
         {
-            if (request.UserId is null && request.Avatar is null && string.IsNullOrWhiteSpace(request.CharacterAppearanceUrl)) throw new RenderValidationException("userId, avatar, or characterAppearanceUrl is required");
+            if (request.UserId is null && request.Avatar is null && string.IsNullOrWhiteSpace(request.CharacterAppearanceUrl))
+                throw new RenderValidationException("userId, avatar, or characterAppearanceUrl is required");
         }
-        else if (request.Kind == RenderKind.Animation && (string.IsNullOrWhiteSpace(request.CharacterAppearanceUrl) || string.IsNullOrWhiteSpace(request.AnimationUrl)))
+        else if (request.Kind == RenderKind.Animation &&
+                 (string.IsNullOrWhiteSpace(request.CharacterAppearanceUrl) || string.IsNullOrWhiteSpace(request.AnimationUrl)))
             throw new RenderValidationException("characterAppearanceUrl and animationUrl are required");
         else if (request.AssetId is null && string.IsNullOrWhiteSpace(request.AssetUrl) && string.IsNullOrWhiteSpace(request.AssetUrls))
             throw new RenderValidationException("assetId, assetUrl, or assetUrls is required");
     }
 
-    private static long Base64DecodedLength(string value) => Convert.FromBase64String(value).LongLength;
-    private void DisposeWorker(RenderWorker worker) { _ports.Release(worker.Port); try { worker.Process.KillTree(); } finally { worker.Process.Dispose(); } }
-    public void Dispose() { lock (_workersGate) { foreach (var worker in _idle) DisposeWorker(worker); _idle.Clear(); _workerCount = 0; } _slots.Dispose(); }
+    private void DisposeWorker(RenderWorker worker)
+    {
+        _ports.Release(worker.Port);
+        try { worker.Process.KillTree(); }
+        finally { worker.Process.Dispose(); }
+    }
+
+    public void Dispose()
+    {
+        List<RenderWorker> workers;
+        lock (_workersGate)
+        {
+            workers = [.. _idle];
+            _idle.Clear();
+            _workerCount = 0;
+        }
+        foreach (var worker in workers) DisposeWorker(worker);
+        _conversionSlots.Dispose();
+    }
 
     private sealed class RenderWorker(int port, IManagedProcess process, IRccSoapClient soap)
-    { public int Port { get; } = port; public IManagedProcess Process { get; } = process; public IRccSoapClient Soap { get; } = soap; public int UseCount { get; set; } public DateTime LastUsedUtc { get; set; } = DateTime.UtcNow; }
+    {
+        public int Port { get; } = port;
+        public IManagedProcess Process { get; } = process;
+        public IRccSoapClient Soap { get; } = soap;
+        public int UseCount { get; set; }
+        public DateTime LastUsedUtc { get; set; } = DateTime.UtcNow;
+    }
 }

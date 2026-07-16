@@ -20,7 +20,29 @@ public sealed record TelemetryDashboardResponse(
     string Service,
     IReadOnlyList<string> AvailableServices,
     TelemetrySummary Summary,
-    IReadOnlyList<TelemetryChart> Charts);
+    IReadOnlyList<TelemetryChart> Charts,
+    RenderPoolSnapshot? RenderPool = null);
+
+public sealed record RenderPoolSnapshot(
+    int WorkerCount,
+    int IdleWorkerCount,
+    int RunningJobs,
+    int InteractiveQueuedJobs,
+    int BackgroundQueuedJobs,
+    int ConversionQueuedJobs,
+    long ColdStarts,
+    long ReusedWorkers,
+    long Retries,
+    long CoalescedRequests,
+    double AverageQueueMilliseconds,
+    double AverageRccMilliseconds,
+    double AverageTotalMilliseconds,
+    bool Ready);
+
+public interface IRenderStatisticsClient
+{
+    Task<RenderPoolSnapshot?> GetAsync(CancellationToken cancellationToken);
+}
 
 public sealed class TelemetryQueryException : Exception
 {

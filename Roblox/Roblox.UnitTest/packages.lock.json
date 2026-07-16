@@ -1550,7 +1550,6 @@
           "NetVips": "[3.2.0, )",
           "NetVips.Native.linux-x64": "[8.18.3, )",
           "NetVips.Native.win-x64": "[8.18.3, )",
-          "Roblox.Metrics": "[1.0.0, )",
           "Roblox.Rendering.Contracts": "[1.0.0, )"
         }
       },

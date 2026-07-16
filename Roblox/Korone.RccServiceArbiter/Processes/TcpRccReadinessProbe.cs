@@ -19,7 +19,7 @@ public sealed class TcpRccReadinessProbe : IRccReadinessProbe
             }
             catch when (!timeoutCts.IsCancellationRequested)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(200), timeoutCts.Token);
+                await Task.Delay(TimeSpan.FromMilliseconds(50), timeoutCts.Token);
             }
         }
 

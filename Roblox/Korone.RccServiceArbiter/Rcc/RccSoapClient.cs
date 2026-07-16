@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Linq;
+using System.Xml;
 
 namespace Korone.RccServiceArbiter.Rcc;
 
@@ -32,6 +33,63 @@ public sealed class RccSoapClient : IRccSoapClient
     {
         var response = await SendForResponseAsync("BatchJob", RccSoapEnvelope.BatchJob(_serviceUrl, job, script), cancellationToken);
         return ParseBatchJobResponse(response);
+    }
+
+    public async Task<RccRenderResponse> BatchRenderAsync(Job job, ScriptExecution script, bool modern,
+        bool jsonOutput, int maximumBytes, CancellationToken cancellationToken)
+    {
+        var action = modern ? "BatchJob" : "BatchJobEx";
+        var envelope = modern ? RccSoapEnvelope.BatchJob(_serviceUrl, job, script) : RccSoapEnvelope.BatchJobEx(_serviceUrl, job, script);
+        using var request = CreateRequest(action, envelope);
+        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new HttpRequestException($"RCC {action} returned HTTP {(int)response.StatusCode}: {error}", null, response.StatusCode);
+        }
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var reader = XmlReader.Create(stream, new XmlReaderSettings
+        {
+            Async = true,
+            DtdProcessing = DtdProcessing.Prohibit,
+            IgnoreComments = true,
+            IgnoreWhitespace = true,
+        });
+        byte[]? data = null;
+        List<string> dependencies = [];
+        while (await reader.ReadAsync())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (reader.NodeType != XmlNodeType.Element || reader.LocalName != "value") continue;
+            if (data == null)
+            {
+                if (jsonOutput)
+                {
+                    var text = await reader.ReadElementContentAsStringAsync();
+                    data = Encoding.UTF8.GetBytes(text);
+                }
+                else
+                {
+                    using var output = new MemoryStream();
+                    var buffer = new byte[81920];
+                    int read;
+                    while ((read = await reader.ReadElementContentAsBase64Async(buffer, 0, buffer.Length)) > 0)
+                    {
+                        if (output.Length + read > maximumBytes)
+                            throw new InvalidDataException("RCC render output exceeded the configured limit");
+                        await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                    }
+                    data = output.ToArray();
+                }
+            }
+            else
+            {
+                var dependency = await reader.ReadElementContentAsStringAsync();
+                if (Uri.TryCreate(dependency, UriKind.Absolute, out _)) dependencies.Add(dependency);
+            }
+        }
+        return new RccRenderResponse(data ?? Array.Empty<byte>(), dependencies.Distinct().ToArray());
     }
 
     public static IReadOnlyList<LuaValue> ParseBatchJobResponse(string response)
