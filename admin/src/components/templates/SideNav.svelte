@@ -39,6 +39,12 @@
 			permission: "GetAdminLogs",
 		},
 		{
+			name: "Telemetry",
+			link: "/admin/telemetry",
+			icon: ActivityIcon,
+			permission: "ViewTelemetry",
+		},
+		{
 			name: "Create Player",
 			link: "/admin/user/create",
 			icon: UsersIcon,

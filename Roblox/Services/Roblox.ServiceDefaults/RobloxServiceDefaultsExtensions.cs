@@ -21,6 +21,7 @@ public static class RobloxServiceDefaultsExtensions
     {
         RobloxServiceInfrastructure.Initialize(builder.Configuration);
         builder.Services.AddRobloxWebInfrastructure(builder.Configuration);
+        builder.Services.AddRobloxTelemetry(builder.Configuration, serviceName, builder.Environment.EnvironmentName);
 
         builder.Services.AddExceptionHandler<RobloxServiceExceptionHandler>();
         builder.Services.AddProblemDetails();

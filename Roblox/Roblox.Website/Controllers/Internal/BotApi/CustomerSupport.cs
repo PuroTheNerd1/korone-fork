@@ -1,4 +1,3 @@
-using InfluxDB.Client.Core.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Users;
 using Roblox.Services.Exceptions;
@@ -37,7 +36,7 @@ namespace Roblox.Website.Controllers
             // First we check if the user who ran the command if he is a owner if they are not, then throw exception
             if (!StaffFilter.IsOwner(userDiscordInfo.userId))
             {
-                throw new InternalServerErrorException("not owner");
+                throw new RobloxException(500, 0, "not owner");
             }
 
             await services.users.DeleteTotp(userId);

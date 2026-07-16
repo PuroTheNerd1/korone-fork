@@ -246,13 +246,13 @@ public class Signup : RobloxPageModel
         {
             // Application
             await services.users.SetApplicationUserIdByJoinId(applicationId!, createdUser.userId);
-            Roblox.Metrics.UserMetrics.ReportUserSignUpFromApplication();
+            Roblox.Metrics.UserMetrics.ReportSignup(Roblox.Metrics.SignupSource.Application);
         }
         else if (method == SignupMethod.InviteUrl)
         {
             // Invite
             await services.users.SetUserInviteId(createdUser.userId, inviteId!);
-            Roblox.Metrics.UserMetrics.ReportUserSignUpFromInvite();
+            Roblox.Metrics.UserMetrics.ReportSignup(Roblox.Metrics.SignupSource.Invite);
         }
 
         var sess = await services.users.CreateSession(createdUser.userId);

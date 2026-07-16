@@ -117,7 +117,7 @@ public class MarketplaceController : RobloxControllerBase
 
         var receiptId = await services.users.PurchaseDeveloperProduct(userId, purchaseRequest.productId, purchaseRequest.requestId);
         stopwatch.Stop();
-        EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds, false);
+        EconomyMetrics.ReportPurchaseDuration(stopwatch.ElapsedMilliseconds, PurchaseProductType.DeveloperProduct, false);
 
         return new
         {
@@ -144,7 +144,7 @@ public class MarketplaceController : RobloxControllerBase
 
         await services.users.PurchaseNormalItem(safeUserSession.userId, purchaseRequest.productId, purchaseRequest.currencyTypeId);
         stopwatch.Stop();
-        EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds, false);
+        EconomyMetrics.ReportPurchaseDuration(stopwatch.ElapsedMilliseconds, PurchaseProductType.Asset, false);
 
         return new
         {

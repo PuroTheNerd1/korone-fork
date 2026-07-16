@@ -1,115 +1,39 @@
 using System.Diagnostics;
-using InfluxDB.Client.Api.Domain;
-using InfluxDB.Client.Writes;
-using Roblox.Logging;
 
 namespace Roblox.Metrics;
 
+public enum PurchaseProductType { Asset, DeveloperProduct }
+public enum PurchaseFailureReason { AlreadyOwned, NoLongerForSale, InsufficientFunds, StockExhausted }
+
 public static class EconomyMetrics
 {
-    /// <summary>
-    /// Call this for reporting Robux economy changes. For example, user A buys item from user B for N robux (seller gets N-30%), call this function with the price user A paid (not the amount user B got).
-    /// </summary>
-    /// <param name="robuxAmount">Amount of Robux. Must be at least 0.</param>
     public static void ReportRobuxVolumeChange(long robuxAmount)
     {
         Debug.Assert(robuxAmount > 0);
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("EconomyRobuxVolume")
-            .Field("robuxAmount", robuxAmount)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
+        if (robuxAmount > 0) RobloxMetrics.EconomyRobuxVolume.Add(robuxAmount);
     }
 
-    public static void ReportItemPurchaseTime(long timeInMilliseconds, bool isThirdPartySale)
+    public static void ReportPurchaseDuration(long elapsedMilliseconds, PurchaseProductType productType, bool isResale)
     {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement(isThirdPartySale ? "PurchaseResaleItem" : "PurchaseItem")
-            .Field("durationInMilliseconds", timeInMilliseconds)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
-    }
-    
-    public static void ReportDevProdPurchaseTime(long timeInMilliseconds, bool isThirdPartySale)
-    {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement(isThirdPartySale ? "PurchaseResaleDevProd" : "PurchaseDevProd")
-            .Field("durationInMilliseconds", timeInMilliseconds)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
+        RobloxMetrics.PurchaseDuration.Record(elapsedMilliseconds,
+            new KeyValuePair<string, object?>("purchase.product_type", ProductType(productType)),
+            new KeyValuePair<string, object?>("purchase.sale_type", isResale ? "resale" : "first_party"));
     }
 
-    public static void ReportUserAlreadyOwnsItemDuringPurchase(string logHistory, long userId, long assetId)
+    public static void ReportPurchaseFailure(PurchaseFailureReason reason, PurchaseProductType productType)
     {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("UserAlreadyOwnsItemDuringPurchase")
-            .Field("userId", userId)
-            .Field("assetId", assetId)
-            .Field("logHistory", logHistory)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
-    }
-    
-    public static void ReportItemNoLongerForSaleDuringPurchase(string logHistory, long userId, long assetId)
-    {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("ItemNoLongerForSaleDuringPurchase")
-            .Field("userId", userId)
-            .Field("assetId", assetId)
-            .Field("logHistory", logHistory)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
-    }
-    
-    public static void ReportDevProductNoLongerForSaleDuringPurchase(string logHistory, long userId, long productId)
-    {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("DevProductNoLongerForSaleDuringPurchase")
-            .Field("userId", userId)
-            .Field("productId", productId)
-            .Field("logHistory", logHistory)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
+        RobloxMetrics.PurchaseFailures.Add(1,
+            new KeyValuePair<string, object?>("failure.reason", reason switch
+            {
+                PurchaseFailureReason.AlreadyOwned => "already_owned",
+                PurchaseFailureReason.NoLongerForSale => "no_longer_for_sale",
+                PurchaseFailureReason.InsufficientFunds => "insufficient_funds",
+                PurchaseFailureReason.StockExhausted => "stock_exhausted",
+                _ => "unknown",
+            }),
+            new KeyValuePair<string, object?>("purchase.product_type", ProductType(productType)));
     }
 
-    public static void ReportUserDoesNotHaveEnoughRobuxDuringPurchase(string logHistory, long userId, long assetId, long balance,
-        long itemPrice)
-    {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("UserDoesNotHaveEnoughRobuxDuringPurchase")
-            .Field("userId", userId)
-            .Field("assetId", assetId)
-            .Field("userBalance", balance)
-            .Field("itemPrice", itemPrice)
-            .Field("logHistory", logHistory)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
-    }
-    
-    public static void ReportUserDoesNotHaveEnoughRobuxDuringDevProdPurchase(string logHistory, long userId, long productId, long balance,
-        long itemPrice)
-    {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("UserDoesNotHaveEnoughRobuxDuringDevProdPurchase")
-            .Field("userId", userId)
-            .Field("productId", productId)
-            .Field("userBalance", balance)
-            .Field("itemPrice", itemPrice)
-            .Field("logHistory", logHistory)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
-    }
-    
-    public static void ReportItemStockExhaustedDuringPurchase(string logHistory, long userId, long assetId, long maxStock, long currentStock)
-    {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("ItemStockExhaustedDuringPurchase")
-            .Field("userId", userId)
-            .Field("assetId", assetId)
-            .Field("maxStock", maxStock)
-            .Field("currentStock", currentStock)
-            .Field("logHistory", logHistory)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
-    }
+    private static string ProductType(PurchaseProductType type) =>
+        type == PurchaseProductType.DeveloperProduct ? "developer_product" : "asset";
 }

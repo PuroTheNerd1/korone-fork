@@ -312,13 +312,13 @@ public class ApplicationGuardMiddleware
             ctx.Response.Headers.ContentType = "text/html; charset=utf-8";
             ctx.Response.Headers.Location = "/auth/captcha";
             await ctx.Response.WriteAsync("Please click <a href=\"/auth/captcha\">here</a> to continue.");
-            Roblox.Metrics.ApplicationGuardMetrics.ReportBlockedUserAgent(ua);
+            Roblox.Metrics.ApplicationGuardMetrics.ReportBlockedUserAgent();
             return;
         }
         uaTimer.Stop();
 
         if (!uaBlocked && !bypassOk && !bypassAllowedForPath)
-            Roblox.Metrics.ApplicationGuardMetrics.ReportAllowedUserAgent(ua);
+            Roblox.Metrics.ApplicationGuardMetrics.ReportAllowedUserAgent();
 
         var authTimer = new MiddlewareTimer(ctx, "a");
         var endpoint = ctx.GetEndpoint();

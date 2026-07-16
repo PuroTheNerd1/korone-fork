@@ -70,7 +70,7 @@ public class PrivateMessagesService : ServiceBase, IService
         // local limit
         if (sentMessages.total > 2000)
         {
-            UserMetrics.ReportMessageFloodCheckReached(senderUserId, sentMessages.total);
+            UserMetrics.ReportFloodCheck(UserFloodCheckType.Message, FloodCheckScope.Local);
             return true;
         }
 
@@ -82,7 +82,7 @@ public class PrivateMessagesService : ServiceBase, IService
         // temporary global limit
         if (allSiteMessages.total > 10000)
         {
-            UserMetrics.ReportGlobalMessageFloodCheckReached(senderUserId, sentMessages.total);
+            UserMetrics.ReportFloodCheck(UserFloodCheckType.Message, FloodCheckScope.Global);
             return true;
         }
         

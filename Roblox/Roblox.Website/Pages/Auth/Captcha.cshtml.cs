@@ -49,7 +49,7 @@ public class Captcha : RobloxPageModel
             Expires = DateTime.UtcNow.AddDays(7),
             Secure = true,
         });
-        Roblox.Metrics.ApplicationGuardMetrics.ReportCaptchaSuccessForUserAgent(ua!);
+        Roblox.Metrics.ApplicationGuardMetrics.ReportCaptchaSuccess();
         return new RedirectResult("/");
     }
 }

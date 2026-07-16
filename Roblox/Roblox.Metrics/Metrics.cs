@@ -1,106 +1,45 @@
-using InfluxDB.Client;
-using InfluxDB.Client.Api.Domain;
-using InfluxDB.Client.Core;
-using InfluxDB.Client.Writes;
-using Roblox.Logging;
+using System.Diagnostics.Metrics;
 
 namespace Roblox.Metrics;
 
-public static class RobloxInfluxDb
+/// <summary>
+/// Shared OpenTelemetry-compatible instruments emitted by Korone services.
+/// </summary>
+public static class RobloxMetrics
 {
-    public static InfluxDBClient? client { get; set; }
-    const string Bucket = "roblox-website-v2";
-    const string Org = "RobloxOrg";
-    
-    public static void Configure()
-    {
-        Console.WriteLine($"Setting up influx");
-        client = InfluxDBClientFactory.Create("https://us-east-1-1.aws.cloud2.influxdata.com", "9MrrCYcNv5RQXhxxx4varK8nIPrOB7alIALlz8hqutzupwv6QphOuVUx8Yj6yY_-b_atGr3XIN5Nzc_IEC5JbQ==");
-    }
+    public const string MeterName = "Roblox.Metrics";
+    public const string MeterVersion = "2.0.0";
 
-    public static List<PointData> points { get; set; } = new();
-    private static readonly Mutex PointsMutex = new();
-    public static bool pointUploaderRunning { get; set; }
+    internal static readonly Meter Meter = new(MeterName, MeterVersion);
 
-    public static void StartWriterTask()
-    {
-        lock (PointsMutex)
-        {
-            if (pointUploaderRunning || points.Count == 0)
-                return;
-            pointUploaderRunning = true;
-        }
-
-        Task.Run(async () =>
-        {
-            try
-            {
-                var len = points.Count;
-
-                while (len != 0)
-                {
-                    for (var i = 0; i < len; i++)
-                    {
-                        await WritePointAsync(points[i]);
-                    }
-
-                    // cut out the points we uploaded
-                    lock (PointsMutex)
-                    {
-                        points = points.Skip(len).ToList();
-                        len = points.Count;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Writer.Info(LogGroup.Metrics, "could not upload points. error = {0}", e.Message);
-            }
-            finally
-            {
-                lock (PointsMutex)
-                {
-                    pointUploaderRunning = false;
-                }
-            }
-        });
-    }
-
-    public static void WritePointInBackground(PointData point)
-    {
-        if (client == null)
-            return;
-        
-        lock (PointsMutex)
-        {
-            points.Add(point);
-        }
-
-        StartWriterTask();
-    }
-    
-    public static async Task WritePointAsync(PointData point)
-    {
-        if (client == null)
-            return;
-        var writeApi = client.GetWriteApiAsync();
-        try
-        {
-            await writeApi.WritePointAsync(point, Bucket, Org);
-        }
-        catch (ArgumentException e)
-        {
-            // Strange bug. Inserts fine but gives this error that seems to be meaningless.
-            if (e.Message != "An item with the same key has already been added. Key: Alt-Svc")
-                throw;
-        }
-    }
-    
-    public static async Task WriteMeasurement(Measurement data)
-    {
-        if (client == null)
-            return;
-        var writeApi = client.GetWriteApiAsync();
-        await writeApi.WriteMeasurementAsync(data, WritePrecision.Ms, Bucket, Org);
-    }
+    internal static readonly Counter<long> CacheLookups = Meter.CreateCounter<long>(
+        "roblox.cache.lookups", "{lookup}", "Cache lookup attempts.");
+    internal static readonly Histogram<double> DatabaseDuration = Meter.CreateHistogram<double>(
+        "roblox.database.operation.duration", "ms", "Database operation duration.");
+    internal static readonly Counter<long> EconomyRobuxVolume = Meter.CreateCounter<long>(
+        "roblox.economy.robux.volume", "{robux}", "Robux processed by economy operations.");
+    internal static readonly Histogram<double> PurchaseDuration = Meter.CreateHistogram<double>(
+        "roblox.economy.purchase.duration", "ms", "Purchase operation duration.");
+    internal static readonly Counter<long> PurchaseFailures = Meter.CreateCounter<long>(
+        "roblox.economy.purchase.failures", "{failure}", "Purchase failures by reason.");
+    internal static readonly Counter<long> UserEvents = Meter.CreateCounter<long>(
+        "roblox.user.events", "{event}", "User and authentication events.");
+    internal static readonly Counter<long> FloodChecks = Meter.CreateCounter<long>(
+        "roblox.flood_check.hits", "{hit}", "Flood-check limit hits.");
+    internal static readonly Counter<long> ApplicationGuardEvents = Meter.CreateCounter<long>(
+        "roblox.application_guard.events", "{event}", "Application guard decisions.");
+    internal static readonly Counter<long> SecurityEvents = Meter.CreateCounter<long>(
+        "roblox.security.events", "{event}", "Security-relevant application events.");
+    internal static readonly Counter<long> AssetUploadFailures = Meter.CreateCounter<long>(
+        "roblox.asset.upload.failures", "{failure}", "Rejected asset uploads.");
+    internal static readonly Counter<long> GameJoinEvents = Meter.CreateCounter<long>(
+        "roblox.game.join.events", "{event}", "Game join pipeline events.");
+    internal static readonly Counter<long> GameServerEvents = Meter.CreateCounter<long>(
+        "roblox.game.server.events", "{event}", "Game server lifecycle events.");
+    internal static readonly Histogram<double> GameServerDuration = Meter.CreateHistogram<double>(
+        "roblox.game.server.operation.duration", "ms", "Game server operation duration.");
+    internal static readonly Counter<long> RenderFailures = Meter.CreateCounter<long>(
+        "roblox.render.failures", "{failure}", "Render failures.");
+    internal static readonly Histogram<double> RenderDuration = Meter.CreateHistogram<double>(
+        "roblox.render.duration", "ms", "Render operation duration.");
 }

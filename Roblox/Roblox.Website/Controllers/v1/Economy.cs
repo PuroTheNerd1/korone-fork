@@ -277,8 +277,8 @@ public class EconomyControllerV1 : ControllerBase
 
         stopwatch.Stop();
         // Report time
-        Metrics.EconomyMetrics.ReportItemPurchaseTime(stopwatch.ElapsedMilliseconds,
-            request.userAssetId != null);
+        Metrics.EconomyMetrics.ReportPurchaseDuration(stopwatch.ElapsedMilliseconds,
+            Metrics.PurchaseProductType.Asset, request.userAssetId != null);
 
         return new
         {

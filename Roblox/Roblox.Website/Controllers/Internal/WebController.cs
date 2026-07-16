@@ -779,7 +779,7 @@ public class WebController : ControllerBase
         /*var pendingAssets = await services.assets.CountAssetsPendingApproval();
         if (pendingAssets >= 150)
         {
-            Metrics.UserMetrics.ReportGlobalPendingAssetsFloodCheckReached(userSession.userId);
+            Metrics.UserMetrics.ReportFloodCheck(Metrics.UserFloodCheckType.PendingAsset, Metrics.FloodCheckScope.Global);
             throw new RobloxException(400, 0, "There are too many pending items. Try again in a few minutes.");
         }*/
 
@@ -797,7 +797,7 @@ public class WebController : ControllerBase
         var myPendingItems = await services.assets.CountAssetsByCreatorPendingApproval(groupId, CreatorType.Group);
         if (myPendingItems >= 20)
         {
-            Metrics.UserMetrics.ReportPendingAssetsFloodCheckReached(userSession.userId);
+            Metrics.UserMetrics.ReportFloodCheck(Metrics.UserFloodCheckType.PendingAsset, Metrics.FloodCheckScope.Local);
             throw new RobloxException(409, 0, "You have uploaded too many items in a short period of time. Wait a few minutes and try again.");
         }
 
@@ -806,7 +806,7 @@ public class WebController : ControllerBase
         {
             if (pendingAssetUploads >= 5)
             {
-                Metrics.UserMetrics.ReportGlobalUploadsFloodcheckReached(userSession.userId);
+                Metrics.UserMetrics.ReportFloodCheck(Metrics.UserFloodCheckType.Upload, Metrics.FloodCheckScope.Global);
                 throw new RobloxException(409, 0, "There are too many pending assets at this time. Try again in a few minutes.");
             }
             pendingAssetUploads++;

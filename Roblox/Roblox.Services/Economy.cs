@@ -1,5 +1,4 @@
 using Dapper;
-using InfluxDB.Client.Api.Domain;
 using Roblox.Dto.Economy;
 using Roblox.Dto.Users;
 using Roblox.Libraries.Exceptions;

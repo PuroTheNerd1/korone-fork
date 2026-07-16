@@ -424,7 +424,7 @@ public class GroupsService : ServiceBase, IService
         var pastHour = await GetUserWallPostCount(userId, TimeSpan.FromHours(1));
         if (pastHour >= 25)
         {
-            GroupMetrics.ReportWallPostFloodCheck(groupId, userId, pastHour);
+            GroupMetrics.ReportFloodCheck(GroupFloodCheckType.WallPost);
             return true;
         }
 
@@ -437,7 +437,7 @@ public class GroupsService : ServiceBase, IService
             });
         if (allPostsInGroupPastHour.total >= 25)
         {
-            GroupMetrics.ReportGlobalWallPostFloodCheckForSpecificGroup(groupId, allPostsInGroupPastHour.total);
+            GroupMetrics.ReportFloodCheck(GroupFloodCheckType.GlobalWallPostForGroup);
             return true;
         }
 
@@ -450,7 +450,7 @@ public class GroupsService : ServiceBase, IService
         if (globalPosts.total >= 150)
         {
             // todo: experiment with this limit...
-            GroupMetrics.ReportGlobalWallPostFloodCheck(groupId, userId, globalPosts.total);
+            GroupMetrics.ReportFloodCheck(GroupFloodCheckType.GlobalWallPost);
             return true;
         }
 

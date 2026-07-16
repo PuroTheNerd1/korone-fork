@@ -6,6 +6,7 @@ using Roblox.Dto.Users;
 using Roblox.Rendering;
 using Roblox.Services;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.ServiceDefaults;
 using Roblox.Web.Infrastructure.Extensions;
 using Roblox.Website.ExceptionHandlers;
 using Roblox.Website.HostedServices;
@@ -107,6 +108,7 @@ public static class RobloxWebsiteBuilderExtensions
 
     public static IServiceCollection AddRobloxWebsiteServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
+        services.AddRobloxTelemetry(configuration, "Roblox.Website", environment.EnvironmentName);
         services.AddRazorPages();
         services.AddRobloxWebInfrastructure(configuration);
         services.AddSingleton<Roblox.EconomyChat.ChatService>();

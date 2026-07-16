@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http.Features;
 using Roblox.ServiceDefaults;
 using Roblox.Services.Admin.HostedServices;
+using Roblox.Services.Admin.Telemetry;
 using Roblox.Services.App.FeatureFlags;
 using Roblox.Web.Infrastructure;
 using Roblox.Web.Infrastructure.Admin;
@@ -12,6 +13,15 @@ await FeatureFlags.RefreshOnceAsync();
 builder.Services.AddSingleton<IAdminStaffAuthorizationService, AdminStaffAuthorizationService>();
 builder.Services.AddSingleton<IAdminTwoFactorStore, AdminTwoFactorStore>();
 builder.Services.AddHostedService<FeatureFlagRefreshHostedService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddHttpClient<ITelemetryQueryService, PrometheusTelemetryQueryService>((serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var baseUrl = configuration["Telemetry:PrometheusBaseUrl"] ?? "http://prometheus:9090/";
+    client.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/");
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

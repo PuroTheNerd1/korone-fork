@@ -1,5 +1,4 @@
 
-using InfluxDB.Client.Core.Exceptions;
 using Roblox;
 using Roblox.Dto.Games;
 using Roblox.Dto.Users;
@@ -7,6 +6,7 @@ using Roblox.Models.Assets;
 using Roblox.Models.Games;
 using Roblox.Models.GameServer;
 using Roblox.Services;
+using Roblox.Services.Exceptions;
 using Roblox.Services.Signer;
 namespace Roblox.Services.PlaceLauncher;
 public class PlaceLauncherService : ServiceBase
@@ -27,7 +27,7 @@ public class PlaceLauncherService : ServiceBase
         {
             case "RequestGameJob":
                 if (plRequest.gameId == null)
-                    throw new BadRequestException("Game Id is missing");
+                    throw new RobloxException(400, 0, "Game Id is missing");
                 return await RequestGameJob((long)plRequest.userId, (Guid)plRequest.gameId, plRequest.placeId);
             case "RequestGame":
                 return await RequestGame(plRequest.placeId, (long)plRequest.userId, plRequest.cookie, plRequest.special, plRequest.username);

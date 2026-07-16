@@ -1,41 +1,11 @@
-using InfluxDB.Client.Api.Domain;
-using InfluxDB.Client.Writes;
-using Roblox.Logging;
-
 namespace Roblox.Metrics;
 
 public static class RenderMetrics
 {
-    private static void LogMetric(string group, string msg, params object?[] obj)
-    {
-        Writer.Info(LogGroup.FloodCheck, "[" + group + "] " + msg, obj);
-    }
+    public static void ReportAvatarThumbnailFailure(bool nullBody = false) => RobloxMetrics.RenderFailures.Add(1,
+        new KeyValuePair<string, object?>("render.type", "avatar_thumbnail"),
+        new KeyValuePair<string, object?>("failure.reason", nullBody ? "null_body" : "render_failed"));
 
-    public static void ReportRenderAvatarThumbnailFailure(long userId)
-    {
-        LogMetric("RenderAvatarThumbnailFailure", "avatar render failed");
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("RenderAvatarThumbnailFailure")
-            .Field("userId", userId)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ns));
-    }
-    
-    
-    public static void ReportRenderAvatarThumbnailFailureDueToNullBody(long userId)
-    {
-        LogMetric("RenderAvatarThumbnailFailureDueToNullBody", "avatar render failed");
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("RenderAvatarThumbnailFailureDueToNullBody")
-            .Field("userId", userId)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ns));
-    }
-
-    public static void ReportRenderAvatarThumbnailTime(long userId, long timeInMilliseconds)
-    {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("RenderAvatarThumbnail")
-            .Field("userId", userId)
-            .Field("timeInMilliseconds", timeInMilliseconds)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ns));
-    }
+    public static void ReportAvatarThumbnailDuration(long elapsedMilliseconds) => RobloxMetrics.RenderDuration.Record(elapsedMilliseconds,
+        new KeyValuePair<string, object?>("render.type", "avatar_thumbnail"));
 }

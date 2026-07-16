@@ -49,6 +49,7 @@
 	import StaffStats from "./pages/StaffPerformance.svelte";
 	import Alts from "./pages/Alts.svelte";
 	import PendingUgcItems from "./pages/PendingUgcItems.svelte";
+	import Telemetry from "./pages/Telemetry.svelte";
 	// import 'bootstrap';
 
 	var pushState = history.pushState;
@@ -128,6 +129,9 @@
 		</Route>
 		<Route path="/admin/asset/re-render">
 			<AssetReRender />
+		</Route>
+		<Route path="/admin/telemetry">
+			<Telemetry />
 		</Route>
 		<Route path="/admin/asset/fix-bugged-renders">
 			<FixBuggedRenders />

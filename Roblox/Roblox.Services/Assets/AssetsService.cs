@@ -241,7 +241,7 @@ public class AssetsService : ServiceBase, IService
     {
         if (key.Contains('/', StringComparison.Ordinal))
         {
-            Metrics.SecurityMetrics.ReportBadCharacterFoundInAssetContentName(key, "/", "GetAssetContent");
+            Metrics.SecurityMetrics.ReportBadCharacterFoundInAssetContentName("GetAssetContent");
             throw new ArgumentException("GetAssetContent error 1");
         }
 
@@ -349,7 +349,7 @@ public class AssetsService : ServiceBase, IService
     {
         if (key.Contains('/', StringComparison.Ordinal))
         {
-            Metrics.SecurityMetrics.ReportBadCharacterFoundInAssetContentName(key, "/", "DeleteAssetContent");
+            Metrics.SecurityMetrics.ReportBadCharacterFoundInAssetContentName("DeleteAssetContent");
             throw new ArgumentException("DeleteAssetContent error 1");
         }
 
@@ -370,15 +370,15 @@ public class AssetsService : ServiceBase, IService
                 File.Delete(fullPath);
                 break;
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
-                Metrics.SecurityMetrics.ReportErrorDeletingAssetContent(key, e.StackTrace ?? new Exception().StackTrace ?? "NotGenerated", e.Message);
+                Metrics.SecurityMetrics.ReportErrorDeletingAssetContent();
                 break; // should report but don't throw
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // TODO: what about when a file is being used by something? should be keep retrying?
-                Metrics.SecurityMetrics.ReportErrorDeletingAssetContent(key, e.StackTrace ?? new Exception().StackTrace ?? "NotGenerated", e.Message);
+                Metrics.SecurityMetrics.ReportErrorDeletingAssetContent();
                 throw;
             }
         }
@@ -560,7 +560,7 @@ public class AssetsService : ServiceBase, IService
         }
         catch (Exception e) when (e is InvalidImageException or UnsupportedImageFormatException)
         {
-            AssetMetrics.ReportInvalidClothingFileUploadAttempt(e.Message + "\n" + e.StackTrace);
+            AssetMetrics.ReportInvalidClothingFileUploadAttempt();
             return null;
         }
 
@@ -3331,20 +3331,20 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
         var c = await GetVotesForUser(userId, TimeSpan.FromMinutes(5));
         if (c >= 10)
         {
-            Metrics.GameMetrics.ReportFloodCheckForVoteShort(userId, assetId);
+            Metrics.GameMetrics.ReportVoteFloodCheck(Metrics.GameVoteFloodCheckType.Short);
             throw new RobloxException(429, 0, "TooManyRequests");
         }
 
         if (await GetVotesForUser(userId, TimeSpan.FromDays(1)) >= 100)
         {
-            Metrics.GameMetrics.ReportFloodCheckForVoteLong(userId, assetId);
+            Metrics.GameMetrics.ReportVoteFloodCheck(Metrics.GameVoteFloodCheckType.Long);
             throw new RobloxException(429, 0, "TooManyRequests");
         }
 
         // 100 in a day. This is probably too low but will have to work for now.
         if (await GetVotesForPlace(assetId, TimeSpan.FromDays(1)) >= 100)
         {
-            Metrics.GameMetrics.ReportFloodCheckForAsset(assetId);
+            Metrics.GameMetrics.ReportVoteFloodCheck(Metrics.GameVoteFloodCheckType.Asset);
             throw new RobloxException(429, 0, "TooManyRequests");
         }
 

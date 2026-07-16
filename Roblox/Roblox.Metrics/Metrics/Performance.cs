@@ -1,48 +1,29 @@
-using InfluxDB.Client.Api.Domain;
-using InfluxDB.Client.Writes;
+using System.Diagnostics;
 
 namespace Roblox.Metrics;
 
 public static class PerformanceMetrics
 {
-    private static string SanitizeTag(string? value, string fallback = "unknown")
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return fallback;
-
-        var sanitized = value.Trim();
-        return sanitized.Length > 96 ? sanitized[..96] : sanitized;
-    }
-
     public static void ReportRedisLookup(string prefix, string layer, bool hit)
     {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("RedisCache")
-            .Tag("prefix", SanitizeTag(prefix))
-            .Tag("layer", SanitizeTag(layer))
-            .Tag("result", hit ? "hit" : "miss")
-            .Field("count", 1)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms));
+        RobloxMetrics.CacheLookups.Add(1,
+            new KeyValuePair<string, object?>("cache.prefix", Normalize(prefix)),
+            new KeyValuePair<string, object?>("cache.layer", Normalize(layer)),
+            new KeyValuePair<string, object?>("cache.result", hit ? "hit" : "miss"));
     }
 
     public static void ReportDbDuration(string operation, long elapsedMilliseconds, bool slow)
     {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("Database")
-            .Tag("operation", SanitizeTag(operation))
-            .Tag("slow", slow ? "true" : "false")
-            .Field("elapsed_ms", elapsedMilliseconds)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms));
+        Debug.Assert(elapsedMilliseconds >= 0);
+        RobloxMetrics.DatabaseDuration.Record(elapsedMilliseconds,
+            new KeyValuePair<string, object?>("db.operation", Normalize(operation)),
+            new KeyValuePair<string, object?>("db.slow", slow));
     }
 
-    public static void ReportEndpointDuration(string route, string method, int statusCode, long elapsedMilliseconds)
+    private static string Normalize(string? value)
     {
-        RobloxInfluxDb.WritePointInBackground(PointData
-            .Measurement("Endpoint")
-            .Tag("route", SanitizeTag(route))
-            .Tag("method", SanitizeTag(method))
-            .Tag("status", statusCode.ToString())
-            .Field("elapsed_ms", elapsedMilliseconds)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms));
+        if (string.IsNullOrWhiteSpace(value)) return "unknown";
+        var trimmed = value.Trim().ToLowerInvariant();
+        return trimmed.Length <= 64 ? trimmed : "other";
     }
 }

@@ -325,7 +325,7 @@ public class FriendsService : ServiceBase, IService
             });
         if (currentReqCount.total >= 15)
         {
-            UserMetrics.ReportFriendRequestFloodCheckReached(userId, currentReqCount.total);
+            UserMetrics.ReportFloodCheck(UserFloodCheckType.FriendRequest, FloodCheckScope.Local);
             return true;
         }
         
@@ -337,7 +337,7 @@ public class FriendsService : ServiceBase, IService
         
         if (globalReqCount.total >= 100)
         {
-            UserMetrics.ReportGlobalFriendRequestFloodCheckReached(userId, globalReqCount.total);
+            UserMetrics.ReportFloodCheck(UserFloodCheckType.FriendRequest, FloodCheckScope.Global);
             return true;
         }
 
@@ -412,7 +412,7 @@ public class FriendsService : ServiceBase, IService
             });
         if (currentFollowingCount.total >= 50)
         {
-            UserMetrics.ReportFollowingFloodCheckReached(userId, currentFollowingCount.total);
+            UserMetrics.ReportFloodCheck(UserFloodCheckType.Follow, FloodCheckScope.Local);
             return true;
         }
 

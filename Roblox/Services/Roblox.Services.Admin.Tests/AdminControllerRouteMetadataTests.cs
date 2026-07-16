@@ -114,6 +114,26 @@ public class AdminControllerRouteMetadataTests
         Assert.Equal(Access.RequestAssetReRender, ReadAdminPermission(permission));
     }
 
+    [Fact]
+    public void TelemetryRoute_HasExplicitSecurityAndPermissionMetadata()
+    {
+        var controller = typeof(TelemetryController);
+        var attributes = controller.GetCustomAttributes(inherit: true);
+        Assert.Contains(attributes, attribute => attribute is InternalServiceOnlyAttribute);
+        Assert.Contains(attributes, attribute => attribute is RequireRobloxSessionAttribute);
+        Assert.Contains(attributes, attribute => attribute is AdminStaffFilterAttribute);
+        Assert.Contains(attributes, attribute => attribute is AdminTwoFactorFilterAttribute);
+
+        var route = Assert.IsType<RouteAttribute>(attributes.Single(attribute => attribute is RouteAttribute));
+        Assert.Equal("/v1/telemetry", route.Template);
+
+        var method = controller.GetMethod(nameof(TelemetryController.GetDashboard))!;
+        var get = Assert.IsType<HttpGetAttribute>(method.GetCustomAttributes(inherit: true).Single(attribute => attribute is HttpGetAttribute));
+        Assert.Equal("dashboard", get.Template);
+        var permission = Assert.IsType<AdminPermissionAttribute>(method.GetCustomAttributes(inherit: true).Single(attribute => attribute is AdminPermissionAttribute));
+        Assert.Equal(Access.ViewTelemetry, ReadAdminPermission(permission));
+    }
+
     private static Dictionary<string, RouteEntry> ReadRouteMatrix(Type controllerType)
     {
         return controllerType

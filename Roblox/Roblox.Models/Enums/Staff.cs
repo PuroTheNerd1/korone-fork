@@ -87,5 +87,6 @@ public enum Access
     RollbackTrade,
     ViewMacAddresses,
     PendingUgcItems,
+    ViewTelemetry,
     All, // fake perm
 }

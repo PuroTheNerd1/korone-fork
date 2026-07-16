@@ -1616,7 +1616,7 @@ public class UsersService : ServiceBase, IService
             var ownedCopies = (await GetUserAssets(userIdBuyer, assetId)).ToList();
             if (ownedCopies.Count != 0)
             {
-                EconomyMetrics.ReportUserAlreadyOwnsItemDuringPurchase(log.GetLoggedStrings(), userIdBuyer, assetId);
+                EconomyMetrics.ReportPurchaseFailure(PurchaseFailureReason.AlreadyOwned, PurchaseProductType.Asset);
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.UserAlreadyOwnsBeforePurchase);
             }
             log.Info("owned copies len = {0}", ownedCopies.Count);
@@ -1631,7 +1631,7 @@ public class UsersService : ServiceBase, IService
             if (!assetDetails.isForSale)
             {
                 Console.WriteLine(assetId);
-                EconomyMetrics.ReportItemNoLongerForSaleDuringPurchase(log.GetLoggedStrings(), userIdBuyer, assetDetails.assetId);
+                EconomyMetrics.ReportPurchaseFailure(PurchaseFailureReason.NoLongerForSale, PurchaseProductType.Asset);
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.AssetNotForSale);
             }
 
@@ -1659,7 +1659,7 @@ public class UsersService : ServiceBase, IService
             if (balance < realPrice)
             {
                 if (expectedCurrency == CurrencyType.Robux)
-                    EconomyMetrics.ReportUserDoesNotHaveEnoughRobuxDuringPurchase(log.GetLoggedStrings(), userIdBuyer, assetId, balance, assetDetails.priceRobux ?? 0);
+                    EconomyMetrics.ReportPurchaseFailure(PurchaseFailureReason.InsufficientFunds, PurchaseProductType.Asset);
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.BalanceLessThanPrice);
             }
             log.Info("buyer balance = {0} item price = {1}", balance, assetDetails.priceRobux);
@@ -1681,8 +1681,7 @@ public class UsersService : ServiceBase, IService
                 var saleCount = await CountSoldCopiesForAsset(assetId);
                 if (assetDetails.serialCount != 0 && saleCount >= assetDetails.serialCount)
                 {
-                    EconomyMetrics.ReportItemStockExhaustedDuringPurchase(log.GetLoggedStrings(), userIdBuyer,
-                        assetId, assetDetails.serialCount, saleCount);
+                    EconomyMetrics.ReportPurchaseFailure(PurchaseFailureReason.StockExhausted, PurchaseProductType.Asset);
                     throw new InternalPurchaseFailureException(InternalPurchaseFailReason.AssetStockExhausted); // Unlikely to be hit
                 }
                 // User gets saleCount+1 serial number
@@ -1851,7 +1850,7 @@ public class UsersService : ServiceBase, IService
 
             if (!productDetails.isForSale)
             {
-                EconomyMetrics.ReportDevProductNoLongerForSaleDuringPurchase(log.GetLoggedStrings(), userIdBuyer, productDetails.id);
+                EconomyMetrics.ReportPurchaseFailure(PurchaseFailureReason.NoLongerForSale, PurchaseProductType.DeveloperProduct);
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.DeveloperProductNotForSale);
             }
 
@@ -1867,7 +1866,7 @@ public class UsersService : ServiceBase, IService
 
             if (balance < realPrice)
             {
-                EconomyMetrics.ReportUserDoesNotHaveEnoughRobuxDuringPurchase(log.GetLoggedStrings(), userIdBuyer, productId, balance, productDetails.price);
+                EconomyMetrics.ReportPurchaseFailure(PurchaseFailureReason.InsufficientFunds, PurchaseProductType.DeveloperProduct);
                 throw new InternalPurchaseFailureException(InternalPurchaseFailReason.BalanceLessThanPrice);
             }
             log.Info("buyer balance = {0} dev product price = {1}", balance, productDetails.price);

@@ -1,4 +1,3 @@
-using InfluxDB.Client.Core.Exceptions;
 using MVC = Microsoft.AspNetCore.Mvc;
 using Roblox.Dto.Gambling;
 using System.Globalization;

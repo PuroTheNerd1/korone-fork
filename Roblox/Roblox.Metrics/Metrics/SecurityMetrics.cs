@@ -1,29 +1,18 @@
-using InfluxDB.Client.Api.Domain;
-using InfluxDB.Client.Writes;
-
 namespace Roblox.Metrics;
 
 public static class SecurityMetrics
 {
-    public static void ReportBadCharacterFoundInAssetContentName(string contentName, string badCharacter, string method)
+    public static void ReportBadCharacterFoundInAssetContentName(string method) => Record("bad_asset_content_character", method);
+    public static void ReportErrorDeletingAssetContent() => Record("asset_content_delete_error", null);
+
+    private static void Record(string eventName, string? operation) => RobloxMetrics.SecurityEvents.Add(1,
+        new KeyValuePair<string, object?>("security.event", eventName),
+        new KeyValuePair<string, object?>("security.operation", NormalizeOperation(operation)));
+
+    private static string NormalizeOperation(string? value) => value switch
     {
-        RobloxInfluxDb.WritePointInBackground(PointData.Measurement("WebsiteSecurity")
-            .Field("name", "BadCharacterFoundInAssetContentName")
-            .Field("badCharacter", badCharacter)
-            .Field("contentName", contentName)
-            .Field("method", method)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
-    }
-    
-    public static void ReportErrorDeletingAssetContent(string contentName, string stack, string message)
-    {
-        RobloxInfluxDb.WritePointInBackground(PointData.Measurement("WebsiteSecurity")
-            .Field("contentName", contentName)
-            .Field("name", "ErrorDeletingAssetContent")
-            .Field("stack", stack)
-            .Field("message", message)
-            .Timestamp(DateTime.UtcNow, WritePrecision.Ms)
-        );
-    }
+        "GetAssetContent" => "get_asset_content",
+        "DeleteAssetContent" => "delete_asset_content",
+        _ => "unknown",
+    };
 }

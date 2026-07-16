@@ -42,6 +42,7 @@ x-dotnet-prod-env: &dotnet-prod-env
   Directories__RCCLuaScripts: "/app/Roblox/Roblox.Rendering/internalscripts/"
   Directories__RCCService: "/app/RCCService/"
   Directories__RCCServiceGames: "/app/RCCService/"
+  OpenTelemetry__OtlpEndpoint: "http://otel-collector:4317"
 
 x-dotnet-prod-service: &dotnet-prod-service
   restart: unless-stopped
@@ -63,12 +64,53 @@ volumes:
   storage_data:
   thumbnails_data:
   group_icons_data:
+  prometheus_data:
 
 networks:
   korone:
     driver: bridge
 
 services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.156.0
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./telemetry/otel-collector.yml:/etc/otelcol-contrib/config.yaml:ro
+    expose:
+      - "4317"
+      - "8889"
+    networks:
+      - korone
+    healthcheck:
+      test: ["CMD", "/otelcol-contrib", "validate", "--config=/etc/otelcol-contrib/config.yaml"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.12.0
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-30d}"
+    volumes:
+      - ./telemetry/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    expose:
+      - "9090"
+    networks:
+      - korone
+    depends_on:
+      otel-collector:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/ready >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   migrations:
     build:
       context: .
@@ -236,6 +278,7 @@ services:
       <<: *dotnet-prod-env
       ASPNETCORE_URLS: "http://0.0.0.0:5210"
       OwnerUserId__0: "${OWNER_USER_ID:-1}"
+      Telemetry__PrometheusBaseUrl: "http://prometheus:9090/"
 
   frontend:
     build:

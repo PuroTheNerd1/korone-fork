@@ -177,14 +177,14 @@ public class Landing : RobloxPageModel
         if (!await services.cooldown.TryIncrementBucketCooldown(loginKey, 15, TimeSpan.FromMinutes(10), attemptCount, true))
         {
             loginError = "Too many attempts. Try again in 15 minutes.";
-            UserMetrics.ReportLoginFloodCheckReached(attemptCount.Length);
+            UserMetrics.ReportFloodCheck(UserFloodCheckType.Login, FloodCheckScope.Local);
             return Page();
         }
 
         if (!await HCaptcha.IsValid(rawIpAddress, captchaResponse))
         {
             loginError = "Your captcha could not be verified. Please try again.";
-            UserMetrics.ReportCaptchaFailure(UserMetrics.CaptchaFailureType.Login);
+            UserMetrics.ReportCaptchaFailure(CaptchaFlow.Login);
             return Page();
         }
 
@@ -194,7 +194,7 @@ public class Landing : RobloxPageModel
         {
             await PreventTimingExploits(timer);
             loginError = "Incorrect username or password. Please try again";
-            UserMetrics.ReportUserLoginAttempt(false);
+            UserMetrics.ReportLoginAttempt(false);
             return Page();
         }
 
@@ -213,7 +213,7 @@ public class Landing : RobloxPageModel
         if (!passwordOk)
         {
             loginError = "Incorrect username or password. Please try again";
-            UserMetrics.ReportUserLoginAttempt(false);
+            UserMetrics.ReportLoginAttempt(false);
             return Page();
         }
 

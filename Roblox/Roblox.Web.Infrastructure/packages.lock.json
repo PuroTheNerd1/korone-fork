@@ -75,44 +75,10 @@
           "System.Text.Json": "9.0.10"
         }
       },
-      "InfluxDB.Client": {
-        "type": "Transitive",
-        "resolved": "5.1.0",
-        "contentHash": "zzV0llm3tgB/wiMi/YP4BKtqya3i2o0CMNu3M0S7Lvne5XIy/3Vygo/Bq9np4OO08ShVsZHC3hBWpLMSOvPf3g==",
-        "dependencies": {
-          "InfluxDB.Client.Core": "5.1.0",
-          "JsonSubTypes": "2.0.1",
-          "Microsoft.Extensions.ObjectPool": "10.0.8",
-          "Microsoft.Net.Http.Headers": "2.3.10",
-          "System.Collections.Immutable": "10.0.8",
-          "System.Configuration.ConfigurationManager": "10.0.8",
-          "System.Reactive": "6.0.1"
-        }
-      },
-      "InfluxDB.Client.Core": {
-        "type": "Transitive",
-        "resolved": "5.1.0",
-        "contentHash": "u61kovnqoyb4j74xygf7gzYRAgLrP5sLar52BUXKxZqR+aJBgg3M4WauwNSIrerMguRM3rdl7Wats9Mzqfa/bA==",
-        "dependencies": {
-          "CsvHelper": "33.1.0",
-          "Newtonsoft.Json": "13.0.4",
-          "NodaTime": "3.3.2",
-          "NodaTime.Serialization.JsonNet": "3.1.0",
-          "RestSharp": "113.1.0"
-        }
-      },
       "Instances": {
         "type": "Transitive",
         "resolved": "3.0.2",
         "contentHash": "LfhegDpmA8PuHW58RmgVvCDG/mfVCTU+Vhy4ppmXLJfAer33Xl0NocDy92OwSL6CnkVdx41O/I0+BjNhU1JtMQ=="
-      },
-      "JsonSubTypes": {
-        "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "1Po+Ypf0SjCeEKx5+C89Nb5OgTcqNvfS3uTI46MUM+KEp6Rq/M0h+vVsTUt/6DFRwZMTpsAJM4yJrZmEObVANA==",
-        "dependencies": {
-          "Newtonsoft.Json": "13.0.1"
-        }
       },
       "libsodium": {
         "type": "Transitive",
@@ -168,11 +134,6 @@
           "System.Diagnostics.DiagnosticSource": "10.0.9"
         }
       },
-      "Microsoft.Extensions.ObjectPool": {
-        "type": "Transitive",
-        "resolved": "10.0.8",
-        "contentHash": "aQBFbY8i/dacE0fP+ZJ8Lhx/unYRnGHhtM+tHb46GLkeNjBdOzgFk88sX6BVZBhoa6JrYIOBGYTc5K4WItBsag=="
-      },
       "Microsoft.Extensions.Options": {
         "type": "Transitive",
         "resolved": "10.0.9",
@@ -186,15 +147,6 @@
         "type": "Transitive",
         "resolved": "10.0.9",
         "contentHash": "fmEbAUFsaIKirgLt/lYhuFRBwhcSJN31jjHgCdbQxJiWOum6EdLjkbgGuukSP9z/a+9LibaxII/kF+GwOXgC4g=="
-      },
-      "Microsoft.Net.Http.Headers": {
-        "type": "Transitive",
-        "resolved": "2.3.10",
-        "contentHash": "WjHfw2Esfhd8RcdVNM61gS5z6wGGA5rtPIPJTjSe9Y/k8aarXxHWQhOfMqFa+wE/quTUrgs9h+dddyEDsTN/IA==",
-        "dependencies": {
-          "Microsoft.Extensions.Primitives": "8.0.0",
-          "System.Buffers": "4.6.0"
-        }
       },
       "Microsoft.NETCore.Platforms": {
         "type": "Transitive",
@@ -292,22 +244,8 @@
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
-        "resolved": "13.0.4",
-        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
-      },
-      "NodaTime": {
-        "type": "Transitive",
-        "resolved": "3.3.2",
-        "contentHash": "8hI5b1ENTKQCaPyU6YHpYiMwj5aJKZ4Mnv0bLbhk65Dd44gQsXenUohMzyiIphANa8LdW6vcOvpY/l1urvx4dw=="
-      },
-      "NodaTime.Serialization.JsonNet": {
-        "type": "Transitive",
-        "resolved": "3.1.0",
-        "contentHash": "eEr9lXUz50TYr4rpeJG4TDAABkpxjIKr5mDSi/Zav8d6Njy6fH7x4ZtNwWFj0Vd+vIvEZNrHFQ4Gfy8j4BqRGg==",
-        "dependencies": {
-          "Newtonsoft.Json": "13.0.3",
-          "NodaTime": "[3.0.0, 4.0.0)"
-        }
+        "resolved": "13.0.3",
+        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
       "Npgsql": {
         "type": "Transitive",
@@ -336,11 +274,6 @@
           "Microsoft.Extensions.Logging.Abstractions": "2.0.0",
           "StackExchange.Redis": "2.0.513"
         }
-      },
-      "RestSharp": {
-        "type": "Transitive",
-        "resolved": "113.1.0",
-        "contentHash": "poNb3XPzF0Rxp+XW9e7U+TZOIjABkGEYd0cGuNIstcRZTU8ES6+7tpbZ55+0XpxwnxxU8nSAZ89p6WUKI+Cg+A=="
       },
       "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl": {
         "type": "Transitive",
@@ -467,11 +400,6 @@
           "System.IO.Hashing": "10.0.2"
         }
       },
-      "System.Buffers": {
-        "type": "Transitive",
-        "resolved": "4.6.0",
-        "contentHash": "lN6tZi7Q46zFzAbRYXTIvfXcyvQQgxnY7Xm6C6xQ9784dEL1amjM6S6Iw4ZpsvesAKnRVsM4scrDQaDqSClkjA=="
-      },
       "System.Collections": {
         "type": "Transitive",
         "resolved": "4.3.0",
@@ -501,17 +429,8 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "10.0.8",
-        "contentHash": "rvMGYko6bcE/ZTpj1Q/EM22rcZNiQyjH+71capjjfmqG+DDncVE4kSaE5ysCv2vEFIHt8+zALWYXgIETFvcFzw=="
-      },
-      "System.Configuration.ConfigurationManager": {
-        "type": "Transitive",
-        "resolved": "10.0.8",
-        "contentHash": "QG+HHwJjLyUiRuA9axr5pDqHAxboo7FXCTRakxMABE9CUAUij/tsd/MsgQPJUEppkf+YBLT+F/P/wKIVCAIcNg==",
-        "dependencies": {
-          "System.Diagnostics.EventLog": "10.0.8",
-          "System.Security.Cryptography.ProtectedData": "10.0.8"
-        }
+        "resolved": "7.0.0",
+        "contentHash": "dQPcs0U1IKnBdRDBkrCTi1FoajSTBzLcVTpjO4MBCMC7f4pDOIPzgBoX8JjG7X6uZRJ8EBxsi8+DR1JuwjnzOQ=="
       },
       "System.Diagnostics.Debug": {
         "type": "Transitive",
@@ -527,11 +446,6 @@
         "type": "Transitive",
         "resolved": "10.0.9",
         "contentHash": "VzIU41Sb23Em98hDQc71LPwKTC72xkiG7lpCZaIkf84jBJW+ViaKPa24qqR4FPmj1N4vDWilzs6Dq5Om8aFj+Q=="
-      },
-      "System.Diagnostics.EventLog": {
-        "type": "Transitive",
-        "resolved": "10.0.8",
-        "contentHash": "+Ro7WgIom+BDNH+YhTuZKL6QJ0ctfOpTyfUG/h3aU5KwXt3OaNf0wYWrTvoBUj+34Dy5V8dN9yCco1hAJQ4txw=="
       },
       "System.Diagnostics.Tracing": {
         "type": "Transitive",
@@ -807,11 +721,6 @@
           "System.Threading.Timer": "4.3.0"
         }
       },
-      "System.Reactive": {
-        "type": "Transitive",
-        "resolved": "6.0.1",
-        "contentHash": "rHaWtKDwCi9qJ3ObKo8LHPMuuwv33YbmQi7TcUK1C264V3MFnOr5Im7QgCTdLniztP3GJyeiSg5x8NqYJFqRmg=="
-      },
       "System.Reflection": {
         "type": "Transitive",
         "resolved": "4.3.0",
@@ -1059,11 +968,6 @@
           "System.Threading.Tasks": "4.3.0"
         }
       },
-      "System.Security.Cryptography.ProtectedData": {
-        "type": "Transitive",
-        "resolved": "10.0.8",
-        "contentHash": "/ldVgSfImIBp6fLWS7sLH0BnmtFj0ZwGlZo4Xx2q0K3ZhJNDbW45kj2f6zPoC+L+BTINuHdMzTsopuwmkbgcNA=="
-      },
       "System.Security.Cryptography.X509Certificates": {
         "type": "Transitive",
         "resolved": "4.3.0",
@@ -1233,11 +1137,7 @@
         "type": "Project"
       },
       "roblox.metrics": {
-        "type": "Project",
-        "dependencies": {
-          "InfluxDB.Client": "[5.1.0, )",
-          "Roblox.Logging": "[1.0.0, )"
-        }
+        "type": "Project"
       },
       "roblox.models": {
         "type": "Project",
@@ -1262,6 +1162,7 @@
         "type": "Project",
         "dependencies": {
           "AWSSDK.S3": "[4.0.24.4, )",
+          "CsvHelper": "[33.1.0, )",
           "Dapper": "[2.1.79, )",
           "Dapper.Contrib": "[2.0.78, )",
           "Dapper.SqlBuilder": "[2.1.66, )",
