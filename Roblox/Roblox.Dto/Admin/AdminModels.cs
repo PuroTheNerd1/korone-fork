@@ -1,5 +1,6 @@
 // ReSharper disable InconsistentNaming
 
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 using Roblox.Dto.AbuseReport;
 using Roblox.Dto.Assets;
@@ -396,6 +397,9 @@ public class FixBuggedRendersRequest
 {
     public int? limit { get; set; }
     public bool newestFirst { get; set; }
+
+    [Required, RegularExpression("^(roblox|user)$")]
+    public string ownership { get; set; } = "roblox";
 }
 
 public sealed class FixBuggedRendersResponse

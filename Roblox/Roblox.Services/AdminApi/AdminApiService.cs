@@ -1862,13 +1862,17 @@ Thank you for your understanding,
     {
         var limit = Math.Clamp(request.limit ?? 100, 1, 500);
         var sortDirection = request.newestFirst ? "DESC" : "ASC";
+        var robloxOwned = request.ownership == "roblox";
         var rows = (await db.QueryAsync<BuggedRenderAssetRow>(
             @"SELECT asset.id AS ""assetId"", asset.asset_type AS ""assetType""
               FROM asset
               LEFT JOIN asset_thumbnail thumbnail ON thumbnail.asset_id = asset.id
               WHERE asset.moderation_status = :approvedStatus
                 AND asset.creator_type = :creatorType
-                AND asset.creator_id = 1
+                AND (
+                    (:robloxOwned AND asset.creator_id = 1)
+                    OR (NOT :robloxOwned AND asset.creator_id <> 1)
+                )
                 AND asset.asset_type <> ALL(:excludedTypes)
                 AND (
                     thumbnail.asset_id IS NULL
@@ -1881,6 +1885,7 @@ Thank you for your understanding,
             {
                 approvedStatus = (int)ModerationStatus.ReviewApproved,
                 creatorType = (int)CreatorType.User,
+                robloxOwned,
                 excludedTypes = new[] { (int)Type.Audio, (int)Type.Video },
                 limit,
             })).ToList();

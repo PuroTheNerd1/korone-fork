@@ -6,6 +6,7 @@
 	let disabled = false;
 	let limit = 100;
 	let newestFirst = false;
+	let ownership = "roblox";
 	let errorMessage: string | undefined;
 	let matchedCount: number | undefined;
 	let rerenderedAssetIds: number[] = [];
@@ -25,7 +26,7 @@
 		rerenderedAssetIds = [];
 
 		try {
-			const response = await request.post("/asset/fix-bugged-renders", { limit, newestFirst });
+			const response = await request.post("/asset/fix-bugged-renders", { limit, newestFirst, ownership });
 			matchedCount = response.data.matchedCount;
 			rerenderedAssetIds = response.data.rerenderedAssetIds || [];
 		} catch (e) {
@@ -63,6 +64,14 @@
 		</div>
 
 		<div class="col-12 col-md-4">
+			<label for="ownership">Asset ownership</label>
+			<select id="ownership" class="form-control dark-input" bind:value={ownership} disabled={disabled}>
+				<option value="roblox">ROBLOX owned</option>
+				<option value="user">User owned</option>
+			</select>
+		</div>
+
+		<div class="col-12 col-md-4">
 			<label for="sort">Search order</label>
 			<select id="sort" class="form-control dark-input" bind:value={newestFirst} disabled={disabled}>
 				<option value={false}>Oldest bugged items</option>
@@ -79,7 +88,8 @@
 		{#if matchedCount !== undefined}
 			<div class="col-12 mt-4">
 				<div class="alert alert-info">
-					Queued {matchedCount} ROBLOX-owned approved catalog item{matchedCount === 1 ? "" : "s"} for re-render.
+					Queued {matchedCount} {ownership === "roblox" ? "ROBLOX-owned" : "user-owned"} approved catalog
+					item{matchedCount === 1 ? "" : "s"} for re-render.
 				</div>
 			</div>
 		{/if}
