@@ -1106,7 +1106,6 @@
     "DFIntWeldPermyriad": "100",
     "DFIntWorldStepDtAveExpFactorHundredth": "1",
     "DFLogRCCMonitoringVerbose": "100",
-    "FFlagUnifiedPlayerPayload": "True",
     "DFLogAnalyticsDeferredEphemeralReportingDiagnostic": "0",
     "DFLogClientRecvFromRaknet": "10",
     "DFLogErrorDescription": "6",
