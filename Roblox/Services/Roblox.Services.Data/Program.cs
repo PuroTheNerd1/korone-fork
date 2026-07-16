@@ -14,6 +14,7 @@ await FeatureFlags.RefreshOnceAsync();
 
 builder.Services.AddHostedService<FeatureFlagRefreshHostedService>();
 builder.Services.AddExceptionHandler<DataServiceExceptionHandler>();
+builder.Services.AddRequestDecompression();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
