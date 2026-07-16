@@ -234,14 +234,12 @@ namespace Roblox.Website.Controllers
 
         public static long startUserId {get;set;} = 30; // TODO: ?? what's the point of this
 
+        [RequireRobloxSession]
         [HttpPostBypass("login/RequestAuth.ashx")]
         [HttpGetBypass("login/RequestAuth.ashx")]
         public ActionResult<dynamic?> StudioRequestAuth()
         {
-            if (userSession == null)
-                return Unauthorized("User is not authorized.");
-            
-            return Ok($"{Configuration.BaseUrl}/Login/Negotiate.ashx?suggest={PUPPYSECURITY}");
+            return Ok();
         }
 
         [HttpGetBypass("joinserver")]
