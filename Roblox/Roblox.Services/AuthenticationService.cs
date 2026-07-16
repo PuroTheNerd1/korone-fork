@@ -200,10 +200,10 @@ public class AuthenticationService : ServiceBase, IService
             throw Forbidden((int)LoginError403.TooManyAttempts, "Too many attempts please wait 10 minutes before trying again.");
         }
 
-        if (!context.isRobloxClient)
+        /*if (!context.isRobloxClient)
         {
             throw Forbidden((int)LoginError403.IncorrectCredentials, "Incorrect username or password. Please try again");
-        }
+        }*/
     }
 
     private async Task VerifyLoginCredentials(
