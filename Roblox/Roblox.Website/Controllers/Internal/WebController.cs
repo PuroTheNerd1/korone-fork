@@ -480,7 +480,7 @@ public class WebController : ControllerBase
         var assetInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] { placeId })).First();
         if (assetInfo.moderationStatus != ModerationStatus.ReviewApproved || assetInfo.typeId != (int)Models.Assets.Type.Place)
             throw new BadRequestException(1, "Place is not active");
-        var negotiationTicket = await services.sessionNegotiationTickets.IssueAsync(PUPPYSECURITY!);
+        var negotiationTicket = await services.sessionNegotiationTickets.IssueAsync(PUPPYSECURITY!, GetIP());
         var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{negotiationTicket}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGame&placeId={placeId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
             @$"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx 
@@ -508,7 +508,7 @@ public class WebController : ControllerBase
         if (placeInfo.assetType != Models.Assets.Type.Place) throw new BadRequestException();
         var modInfo = (await services.assets.MultiGetAssetDeveloperDetails(new[] { placeId })).First();
         if (modInfo.moderationStatus != ModerationStatus.ReviewApproved) throw new BadRequestException();
-        var negotiationTicket = await services.sessionNegotiationTickets.IssueAsync(PUPPYSECURITY!);
+        var negotiationTicket = await services.sessionNegotiationTickets.IssueAsync(PUPPYSECURITY!, GetIP());
         var bootstrapperArgs = $":1+launchmode:play+clientversion:{clientVer}+gameinfo:{negotiationTicket}+placelauncherurl:{Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true+k:l+client";
         var args =
             $"--authenticationUrl {Roblox.Configuration.BaseUrl}/Login/Negotiate.ashx --authenticationTicket {negotiationTicket} --joinScriptUrl {Configuration.BaseUrl}/Game/PlaceLauncher.ashx?request=RequestGameJob&placeId={placeId}&gameId={jobId}&isPartyLeader=false&gender=&isTeleport=true";

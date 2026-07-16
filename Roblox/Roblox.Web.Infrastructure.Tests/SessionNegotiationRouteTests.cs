@@ -24,7 +24,7 @@ public class SessionNegotiationRouteTests
 
         await using var host = await CreateHostAsync();
         using var tickets = new SessionNegotiationTicketService();
-        var ticket = await tickets.IssueAsync("signed-session-token");
+        var ticket = await tickets.IssueAsync("signed-session-token", "ip");
 
         using var response = await host.Client.SendAsync(CreateRequest(method, $"{path}?suggest={ticket}"));
 

@@ -7,25 +7,26 @@ public sealed class SessionNegotiationTicketService : ServiceBase, IService
     private const int TicketByteLength = 32;
     public static readonly TimeSpan TicketLifetime = TimeSpan.FromMinutes(5);
 
-    public async Task<string> IssueAsync(string sessionToken)
+    public async Task<string> IssueAsync(string sessionToken, string ip)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionToken);
+        ArgumentException.ThrowIfNullOrWhiteSpace(ip);
 
         var bytes = new byte[TicketByteLength];
         RandomNumberGenerator.Fill(bytes);
         var ticket = Convert.ToHexString(bytes).ToLowerInvariant();
-        await redis.StringSetAsync(GetRedisKey(ticket), sessionToken, TicketLifetime);
+        await redis.StringSetAsync(GetRedisKey(ticket, ip), sessionToken, TicketLifetime);
         return ticket;
     }
 
-    public async Task<string?> ConsumeAsync(string? ticket)
+    public async Task<string?> ConsumeAsync(string? ticket, string ip)
     {
         if (!IsValidTicket(ticket))
         {
             return null;
         }
 
-        return await redis.StringGetDeleteAsync(GetRedisKey(ticket!));
+        return await redis.StringGetDeleteAsync(GetRedisKey(ticket!, ip));
     }
 
     private static bool IsValidTicket(string? ticket)
@@ -38,7 +39,7 @@ public sealed class SessionNegotiationTicketService : ServiceBase, IService
         return ticket.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
     }
 
-    private static string GetRedisKey(string ticket) => $"session:negotiate:v1:{ticket}";
+    private static string GetRedisKey(string ticket, string ip) => $"session:negotiate:v1:{ip}:{ticket}";
 
     public bool IsThreadSafe() => true;
     public bool IsReusable() => false;

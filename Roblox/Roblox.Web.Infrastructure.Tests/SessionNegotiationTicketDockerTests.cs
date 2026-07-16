@@ -14,13 +14,14 @@ public class SessionNegotiationTicketDockerTests
 
         using var service = new SessionNegotiationTicketService();
         const string sessionToken = "signed-session-token";
+        const string ip = "ip";
 
-        var ticket = await service.IssueAsync(sessionToken);
+        var ticket = await service.IssueAsync(sessionToken, ip);
 
         Assert.Equal(64, ticket.Length);
         Assert.DoesNotContain(sessionToken, ticket, StringComparison.Ordinal);
-        Assert.Equal(sessionToken, await service.ConsumeAsync(ticket));
-        Assert.Null(await service.ConsumeAsync(ticket));
+        Assert.Equal(sessionToken, await service.ConsumeAsync(ticket, ip));
+        Assert.Null(await service.ConsumeAsync(ticket, ip));
     }
 
     [Theory]
@@ -36,6 +37,6 @@ public class SessionNegotiationTicketDockerTests
         }
 
         using var service = new SessionNegotiationTicketService();
-        Assert.Null(await service.ConsumeAsync(ticket));
+        Assert.Null(await service.ConsumeAsync(ticket, "ip"));
     }
 }

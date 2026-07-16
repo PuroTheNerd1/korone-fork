@@ -315,11 +315,11 @@ namespace Roblox.Website.Controllers
         [RequireRobloxClient]
         public async Task<IActionResult> Negotiate([FromQuery] string? suggest)
         {
-            var sessionToken = await services.sessionNegotiationTickets.ConsumeAsync(suggest);
+            var sessionToken = await services.sessionNegotiationTickets.ConsumeAsync(suggest, GetIpHash());
             if (sessionToken == null)
             {
                 return Unauthorized();
-            }
+            } 
 
             Roblox.Web.Infrastructure.Auth.RobloxSessionCookieWriter.AppendSessionCookiesForToken(
                 HttpContext,
