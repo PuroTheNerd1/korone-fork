@@ -551,6 +551,12 @@ public class AdminApiService : ServiceBase
 
                 item.creatorName = creatorName;
 
+                if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Video)
+                {
+                    await assets.QueueAssetRenderAsync(item.id, item.assetType);
+                    continue;
+                }
+
                 if (item.content_url != null)
                 {
                     item.content_url = GetImageUrl("/images/thumbnails/" + item.content_url + ".png");
