@@ -42,4 +42,18 @@ public static class RobloxMetrics
         "roblox.render.failures", "{failure}", "Render failures.");
     internal static readonly Histogram<double> RenderDuration = Meter.CreateHistogram<double>(
         "roblox.render.duration", "ms", "Render operation duration.");
+    internal static readonly Counter<long> AssetRenderQueueEvents = Meter.CreateCounter<long>(
+        "roblox.asset_render_queue.events", "{event}", "Durable asset render queue transitions.");
+    internal static long AssetRenderReady;
+    internal static long AssetRenderDelayed;
+    internal static long AssetRenderActive;
+    internal static long AssetRenderOldestMilliseconds;
+    internal static readonly ObservableGauge<long> AssetRenderReadyGauge = Meter.CreateObservableGauge(
+        "roblox.asset_render_queue.ready", () => Volatile.Read(ref AssetRenderReady), "{job}");
+    internal static readonly ObservableGauge<long> AssetRenderDelayedGauge = Meter.CreateObservableGauge(
+        "roblox.asset_render_queue.delayed", () => Volatile.Read(ref AssetRenderDelayed), "{job}");
+    internal static readonly ObservableGauge<long> AssetRenderActiveGauge = Meter.CreateObservableGauge(
+        "roblox.asset_render_queue.active", () => Volatile.Read(ref AssetRenderActive), "{job}");
+    internal static readonly ObservableGauge<long> AssetRenderOldestGauge = Meter.CreateObservableGauge(
+        "roblox.asset_render_queue.oldest", () => Volatile.Read(ref AssetRenderOldestMilliseconds), "ms");
 }

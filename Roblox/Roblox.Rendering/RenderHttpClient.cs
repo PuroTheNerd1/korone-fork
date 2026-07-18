@@ -91,7 +91,10 @@ public static class RenderHttpClient
 
     private static HttpClient CreateClient(string baseUrl, string authorization)
     {
-        var client = new HttpClient { BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/"), Timeout = TimeSpan.FromSeconds(75) };
+        // The arbiter owns the RCC/startup deadline and maps it to 504. A competing
+        // client timeout used to abandon a shared render at exactly the same moment,
+        // leaving callers without the arbiter's stable error response.
+        var client = new HttpClient { BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/"), Timeout = Timeout.InfiniteTimeSpan };
         if (!string.IsNullOrWhiteSpace(authorization)) client.DefaultRequestHeaders.TryAddWithoutValidation("rblx-authorization", authorization);
         return client;
     }

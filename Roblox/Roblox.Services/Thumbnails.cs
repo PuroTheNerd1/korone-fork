@@ -1,10 +1,13 @@
 using Dapper;
+using Roblox.Cache;
 using Roblox.Dto.Assets;
 using Roblox.Dto.Thumbnails;
 using Roblox.Logging;
 using Roblox.Models.Assets;
 using Roblox.Models.Thumbnails;
 using Roblox.Services.Exceptions;
+using Roblox.Services.Assets;
+using StackExchange.Redis;
 using Type = Roblox.Models.Assets.Type;
 
 namespace Roblox.Services;
@@ -142,14 +145,29 @@ public class ThumbnailsService : ServiceBase, IService
         var ids = userIds.Distinct().ToList();
         if (ids.Count == 0) return new ThumbnailEntry[] { };
         var query = new SqlBuilder();
-        var t = query.AddTemplate(
-            "SELECT asset.id as targetId, asset.asset_type as type, at.content_url as imageUrl, asset.moderation_status as moderationStatus FROM asset LEFT JOIN asset_thumbnail at ON at.asset_id = asset.id /**where**/");
+        var t = query.AddTemplate("""
+            SELECT asset.id as targetId, asset.asset_type as type, at.content_url as imageUrl,
+                   asset.moderation_status as moderationStatus, latest.id as assetVersionId
+            FROM asset
+            JOIN LATERAL (SELECT id FROM asset_version WHERE asset_id = asset.id ORDER BY version_number DESC LIMIT 1) latest ON TRUE
+            LEFT JOIN asset_thumbnail at ON at.asset_id = asset.id AND at.asset_version_id = latest.id
+            /**where**/
+            """);
         query.OrWhereMulti("asset.id = $1", ids);
 
         var entries = await db.QueryAsync<AssetThumbnailEntryDb>(t.RawSql, t.Parameters);
-        var results = new List<ThumbnailEntry>();
-        foreach (var c in entries)
+        var entryArray = entries.ToArray();
+        var failureKeys = entryArray.Select(entry => (RedisKey)AssetRenderQueue.FailureKey(entry.targetId, entry.assetVersionId)).ToArray();
+        var failureValues = new RedisValue[failureKeys.Length];
+        if (failureKeys.Length > 0)
         {
+            try { failureValues = await DistributedCache.redis.GetDatabase().StringGetAsync(failureKeys); }
+            catch (RedisException) { /* Thumbnail delivery remains available while queue diagnostics recover. */ }
+        }
+        var results = new List<ThumbnailEntry>();
+        for (var entryIndex = 0; entryIndex < entryArray.Length; entryIndex++)
+        {
+            var c = entryArray[entryIndex];
              if (c.moderationStatus == ModerationStatus.Declined)
             {
                 c.imageUrl = "/img/blocked.png";
@@ -190,7 +208,11 @@ public class ThumbnailsService : ServiceBase, IService
             {
                 targetId = c.targetId,
                 imageUrl = c.imageUrl,
-                state = c.imageUrl == null ? ThumbnailState.Pending : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
+                state = c.imageUrl == null
+                    ? c.moderationStatus == ModerationStatus.ReviewApproved && failureValues[entryIndex].HasValue
+                        ? ThumbnailState.Error
+                        : ThumbnailState.Pending
+                    : c.moderationStatus == ModerationStatus.Declined ? ThumbnailState.Blocked : ThumbnailState.Completed,
             });
         }
 

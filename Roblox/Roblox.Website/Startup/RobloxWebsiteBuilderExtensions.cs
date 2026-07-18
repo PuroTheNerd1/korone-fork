@@ -108,7 +108,7 @@ public static class RobloxWebsiteBuilderExtensions
 
     public static IServiceCollection AddRobloxWebsiteServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        Roblox.Services.Assets.AssetRenderQueue.Configure(configuration.GetValue("Render:UseDurableAssetQueue", true));
+        Roblox.Services.Assets.AssetRenderQueue.Configure(configuration);
         services.AddRobloxTelemetry(configuration, "Roblox.Website", environment.EnvironmentName);
         services.AddRazorPages();
         services.AddRobloxWebInfrastructure(configuration);

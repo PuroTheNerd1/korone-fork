@@ -71,14 +71,19 @@ public sealed class RenderService : IRenderService, IDisposable
             Interlocked.Increment(ref _coalesced);
         }
 
-        try
+        var task = shared.Value;
+        if (ReferenceEquals(candidate, shared))
         {
-            return await shared.Value.WaitAsync(cancellationToken);
+            _ = task.ContinueWith(static (_, state) =>
+            {
+                var cleanup = ((RenderService Service, string Key, Lazy<Task<RenderOutput>> Entry))state!;
+                cleanup.Service._inflight.TryRemove(
+                    new KeyValuePair<string, Lazy<Task<RenderOutput>>>(cleanup.Key, cleanup.Entry));
+            }, (this, workKey, shared), CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
-        finally
-        {
-            if (shared.IsValueCreated && shared.Value.IsCompleted) _inflight.TryRemove(workKey, out _);
-        }
+
+        return await task.WaitAsync(cancellationToken);
     }
 
     private async Task<RenderOutput> RenderCoreAsync(RenderRequest request, CancellationToken cancellationToken)

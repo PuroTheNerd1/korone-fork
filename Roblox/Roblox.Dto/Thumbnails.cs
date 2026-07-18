@@ -21,6 +21,7 @@ public class ThumbnailEntryRBX
 public class AssetThumbnailEntryDb
 {
     public long targetId { get; set; }
+    public long assetVersionId { get; set; }
     public string? imageUrl { get; set; }
     public ModerationStatus moderationStatus { get; set; }
     public Type type { get; set; }

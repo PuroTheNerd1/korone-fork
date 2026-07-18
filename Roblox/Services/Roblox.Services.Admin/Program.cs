@@ -7,7 +7,7 @@ using Roblox.Web.Infrastructure;
 using Roblox.Web.Infrastructure.Admin;
 
 var builder = WebApplication.CreateBuilder(args);
-Roblox.Services.Assets.AssetRenderQueue.Configure(builder.Configuration.GetValue("Render:UseDurableAssetQueue", true));
+Roblox.Services.Assets.AssetRenderQueue.Configure(builder.Configuration);
 
 builder.AddRobloxServiceDefaults("Roblox.Services.Admin", ServiceExposure.InternalService);
 await FeatureFlags.RefreshOnceAsync();
