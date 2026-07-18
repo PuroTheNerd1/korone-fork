@@ -695,6 +695,16 @@ public class AssetsService : ServiceBase, IService
         string response = await RenderingHandler.RequestImageThumbnail(assetId, isFace, _renderWorkKey, cancellationToken);
         await UploadThumbnail(assetId, response, 420, 420, ModerationStatus.ReviewApproved);
     }
+
+    private async Task CreateImageThumbnail(long assetId, CancellationToken? cancellationToken = null)
+    {
+        if (await TryCreateRawImageThumbnail(assetId, cancellationToken))
+            return;
+
+        // Type.Image can also contain a Roblox XML/model object whose Decal points at the
+        // actual texture. Those inputs still need RCC to resolve the texture reference.
+        await CreateAssetTextureThumbnail(assetId, Type.Image, cancellationToken);
+    }
     private async Task CreatePackageThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var assets = await GetPackageAssets(assetId);
@@ -833,16 +843,47 @@ public class AssetsService : ServiceBase, IService
             ModerationStatus.AwaitingApproval);
     }
 
-    private async Task CreateRawImageThumbnail(long assetId, CancellationToken? cancellationToken = null)
+    private async Task<bool> TryCreateRawImageThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
         var latestVersion = await GetLatestAssetVersion(assetId);
         EnsureCurrentRenderVersion(latestVersion.assetVersionId);
         if (latestVersion.contentUrl == null)
-            throw new Exception("Latest asset version has no contentUrl");
-        var thumbnailToUse = await GetAssetContent(latestVersion.contentUrl);
-        var key = await UploadAssetContent(thumbnailToUse, Configuration.ThumbnailsDirectory, "png");
-        await InsertOrReplaceThumbnail(assetId, latestVersion.assetVersionId, key,
-            ModerationStatus.AwaitingApproval);
+            return false;
+
+        await using var thumbnailToUse = await GetAssetContent(latestVersion.contentUrl);
+        if (!await IsDirectlyDecodableImageAsync(thumbnailToUse, cancellationToken ?? default))
+            return false;
+
+        cancellationToken?.ThrowIfCancellationRequested();
+        await UploadThumbnail(assetId, thumbnailToUse, 420, 420, ModerationStatus.AwaitingApproval);
+        return true;
+    }
+
+    private async Task CreateRawImageThumbnail(long assetId, CancellationToken? cancellationToken = null)
+    {
+        if (!await TryCreateRawImageThumbnail(assetId, cancellationToken))
+            throw new InvalidDataException("Latest asset version is not a directly decodable PNG or JPEG image");
+    }
+
+    internal static async Task<bool> IsDirectlyDecodableImageAsync(Stream content,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            var image = await Imager.ReadAsync(content);
+            return image.width > 0 && image.height > 0 &&
+                   image.imageFormat is ImagerFormat.PNG or ImagerFormat.JPEG;
+        }
+        catch (Exception exception) when (exception is InvalidImageException or UnsupportedImageFormatException)
+        {
+            return false;
+        }
+        finally
+        {
+            if (content.CanSeek)
+                content.Seek(0, SeekOrigin.Begin);
+        }
     }
 
     private async Task CreateClothingThumbnail(long assetId, Models.Assets.Type assetType, CancellationToken? cancellationToken = null)
@@ -920,10 +961,12 @@ public class AssetsService : ServiceBase, IService
         {
             case Models.Assets.Type.GamePass:
             case Models.Assets.Type.Badge:
-            case Models.Assets.Type.Image:
             case Models.Assets.Type.Decal:
             case Models.Assets.Type.Face:
                 thumbRequests.Add(CreateAssetTextureThumbnail(assetId, assetType, cancellationToken));
+                break;
+            case Models.Assets.Type.Image:
+                thumbRequests.Add(CreateImageThumbnail(assetId, cancellationToken));
                 break;
             // clothing
             case Models.Assets.Type.Shirt:
