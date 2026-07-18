@@ -261,7 +261,7 @@ public class ChatService : ServiceBase, IService
             {
                 try
                 {
-                    var data = JsonSerializer.Deserialize<T>(msg.Message!);
+                    var data = JsonSerializer.Deserialize<T>((string?)msg.Message!);
                     if (data != null)
                     {
                         handler(data);

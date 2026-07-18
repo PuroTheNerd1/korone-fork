@@ -35,7 +35,7 @@ x-dotnet-dev-env: &dotnet-dev-env
   OpenTelemetry__OtlpEndpoint: "http://otel-collector:4317"
 
 x-dotnet-dev-service: &dotnet-dev-service
-  image: mcr.microsoft.com/dotnet/sdk:8.0
+  image: mcr.microsoft.com/dotnet/sdk:10.0
   volumes:
     - .:/srv/app
     - dotnet_cache:/root/.nuget
@@ -196,7 +196,7 @@ services:
     restart: "no"
 
   dotnet-build:
-    image: mcr.microsoft.com/dotnet/sdk:8.0
+    image: mcr.microsoft.com/dotnet/sdk:10.0
     working_dir: /srv/app/Roblox
     volumes:
       - .:/srv/app
