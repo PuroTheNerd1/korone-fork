@@ -56,6 +56,11 @@ module.exports = withBundleAnalyzer({
                 destination: '/places/create',
                 permanent: true,
             },
+            {
+                source: '/support',
+                destination: 'https://support.korone.one/',
+                permanent: true,
+            },
             // {
             //     source: '/donate/stripe',
             //     destination: 'https://buy.stripe.com/3cI6oI9dobzAeVlbLw2Ji04',

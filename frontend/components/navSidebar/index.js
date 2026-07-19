@@ -140,6 +140,7 @@ const NavSideBar = props => {
             {isStaff ? (
                 <LinkEntry theme={getTheme()} name='Panel' url='/admin' icon='icon-edit' count={0}/>
             ) : null}
+            <LinkEntry theme={getTheme()} name='Support' url='/support' icon='icon-nav-blog'/>
             <a href='/BuildersClub/Upgrade.ashx'><p className={s.upgradeNowButton}>Upgrade Now</p></a>
         </div>
     </div>
