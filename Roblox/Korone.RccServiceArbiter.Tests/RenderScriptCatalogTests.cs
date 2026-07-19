@@ -48,7 +48,7 @@ public sealed class RenderScriptCatalogTests
         Assert.Equal("Avatar", settings.GetProperty("Type").GetString());
         var arguments = settings.GetProperty("Arguments");
         Assert.Equal("https://example.test/avatar-r6", arguments[0].GetString());
-        Assert.Equal("https://example.test", arguments[1].GetString());
+        Assert.Equal("https://example.test/", arguments[1].GetString());
         Assert.Equal("PNG", arguments[2].GetString());
         Assert.Equal(840, arguments[3].GetInt32());
         Assert.Equal(840, arguments[4].GetInt32());
@@ -71,7 +71,7 @@ public sealed class RenderScriptCatalogTests
         var settings = document.RootElement.GetProperty("Settings");
         Assert.Equal("Avatar_R15_Action", settings.GetProperty("Type").GetString());
         var arguments = settings.GetProperty("Arguments");
-        Assert.Equal("https://example.test", arguments[0].GetString());
+        Assert.Equal("https://example.test/", arguments[0].GetString());
         Assert.Equal("https://example.test/avatar-r15", arguments[1].GetString());
         Assert.Equal("PNG", arguments[2].GetString());
         Assert.Equal(10, arguments.GetArrayLength());
@@ -99,6 +99,59 @@ public sealed class RenderScriptCatalogTests
         Assert.Equal("10.0.0.20", appearance.Host);
         Assert.Equal(8080, appearance.Port);
         Assert.Contains("renderCorrelationId=render-abc", appearance.Query);
+    }
+
+    [Theory]
+    [InlineData("http://www.pekora.zip")]
+    [InlineData("http://www.pekora.zip/")]
+    public void PackageRender_NormalizesBaseUrlBeforeRccConcatenation(string configuredBaseUrl)
+    {
+        var catalog = new RenderScriptCatalog(Options.Create(new ArbiterOptions
+        {
+            BaseUrl = configuredBaseUrl,
+            Render = new ArbiterRenderOptions { DefaultYear = 2020 },
+        }));
+
+        var execution = catalog.Create(new RenderRequest
+        {
+            Kind = RenderKind.Package,
+            AssetUrls = "http://www.pekora.zip/asset/?id=1",
+        });
+        using var document = JsonDocument.Parse(execution.Script);
+        var arguments = document.RootElement.GetProperty("Settings").GetProperty("Arguments");
+
+        Assert.Equal("http://www.pekora.zip/", arguments[1].GetString());
+        Assert.Equal("http://www.pekora.zip/asset/?id=1785197", arguments[5].GetString());
+    }
+
+    [Fact]
+    public void ModernTeeShirt_UsesRegisteredImageOperationWithUnderlyingContentId()
+    {
+        var catalog = new RenderScriptCatalog(Options.Create(new ArbiterOptions
+        {
+            BaseUrl = "https://example.test",
+            Render = new ArbiterRenderOptions { DefaultYear = 2021 },
+        }));
+
+        var execution = catalog.Create(new RenderRequest
+        {
+            Kind = RenderKind.TeeShirt,
+            AssetId = 901455,
+            ContentId = 135483,
+            Width = 420,
+            Height = 420,
+        });
+        using var document = JsonDocument.Parse(execution.Script);
+        var settings = document.RootElement.GetProperty("Settings");
+        var arguments = settings.GetProperty("Arguments");
+
+        Assert.Equal("Image", settings.GetProperty("Type").GetString());
+        Assert.Equal(135483, arguments[0].GetInt64());
+        Assert.Equal("https://example.test/", arguments[1].GetString());
+        Assert.Equal("PNG", arguments[2].GetString());
+        Assert.Equal(420, arguments[3].GetInt32());
+        Assert.Equal(420, arguments[4].GetInt32());
+        Assert.Equal(10, arguments.GetArrayLength());
     }
 
     private static RenderScriptCatalog CreateCatalog() => new(Options.Create(new ArbiterOptions
