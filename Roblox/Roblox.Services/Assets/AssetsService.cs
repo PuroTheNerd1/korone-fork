@@ -959,12 +959,12 @@ public class AssetsService : ServiceBase, IService
         List<Task> thumbRequests = new();
         switch (assetType)
         {
-            case Models.Assets.Type.GamePass:
-            case Models.Assets.Type.Badge:
             case Models.Assets.Type.Decal:
-            case Models.Assets.Type.Face:
                 thumbRequests.Add(CreateAssetTextureThumbnail(assetId, assetType, cancellationToken));
                 break;
+            case Models.Assets.Type.Face:
+            case Models.Assets.Type.GamePass:
+            case Models.Assets.Type.Badge:
             case Models.Assets.Type.Image:
                 thumbRequests.Add(CreateImageThumbnail(assetId, cancellationToken));
                 break;
