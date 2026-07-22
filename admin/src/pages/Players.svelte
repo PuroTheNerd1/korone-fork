@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { link } from "svelte-routing";
+	import { link, navigate } from "svelte-routing";
 	import Confirm from '../components/modal/Confirm.svelte';
 	import {chunk} from 'lodash';
 
 	import Main from "../components/templates/Main.svelte";
 	import request from "../lib/request";
+	import { is as isRank } from '../stores/rank';
 	let playersData = [];
 	let sortColumn = "user.id";
 	let sortMode = "asc";
@@ -13,6 +14,12 @@
 	let disabled = false;
 	let reason = '';
 	let internalReason = '';
+	let searchQuery = "";
+	let searchType: 'username' | 'userId' | 'macAddress' | 'ipHash' = 'username';
+	let exactMacSetOnly = false;
+	let ipBanReason = '';
+	let ipIsBanned = false;
+	let ipStatusLoaded = false;
 
     let modalBody: string|undefined;
     let modalCb: (didClickyes: boolean) => void|undefined;
@@ -35,7 +42,9 @@
 	export let onlineAt;
 
 	const formatDate = (dateString) => {
+		if (!dateString) return '—';
 		const date = new Date(dateString);
+		if (Number.isNaN(date.getTime())) return '—';
 		return date.toLocaleString('en-US', {
 		year: 'numeric',
 		month: 'long',
@@ -64,22 +73,87 @@
 		}
 	}
 
-	const searchUsers = () => {
+	const searchUsers = async () => {
+		const normalizedQuery = searchQuery.trim();
+		if (searchType === 'userId') {
+			if (!/^\d+$/.test(normalizedQuery)) {
+				alert('Enter a valid numeric user ID.');
+				return;
+			}
+			navigate(`/admin/manage-user/${normalizedQuery}`);
+			return;
+		}
+
 		disabled = true;
-		request
-			.get("/users?orderByColumn=" + encodeURIComponent(sortColumn) + "&orderByMode=" + encodeURIComponent(sortMode) + "&limit=" + limit + "&offset=" + offset + "&query=" + encodeURIComponent(searchQuery))
-			.then((res) => {
-				playersData = res.data.data;
-			})
-			.finally(() => {
-				disabled = false;
-			});
+		try {
+			if (searchType === 'macAddress') {
+				if (!normalizedQuery) {
+					playersData = [];
+					return;
+				}
+				const response = await request.get('/user/search-by-mac?macAddress=' + encodeURIComponent(normalizedQuery) + '&exactSetOnly=' + exactMacSetOnly);
+				playersData = response.data;
+				return;
+			}
+			if (searchType === 'ipHash') {
+				if (!normalizedQuery) {
+					playersData = [];
+					ipIsBanned = false;
+					ipStatusLoaded = false;
+					return;
+				}
+				const [usersResponse, statusResponse] = await Promise.all([
+					request.get('/user/search-by-ip?ipHash=' + encodeURIComponent(normalizedQuery)),
+					request.get('/ip-ban/status?ipHash=' + encodeURIComponent(normalizedQuery)),
+				]);
+				playersData = usersResponse.data;
+				ipIsBanned = statusResponse.data.isBanned;
+				ipStatusLoaded = true;
+				return;
+			}
+
+			const response = await request.get("/users?orderByColumn=" + encodeURIComponent(sortColumn) + "&orderByMode=" + encodeURIComponent(sortMode) + "&limit=" + limit + "&offset=" + offset + "&query=" + encodeURIComponent(normalizedQuery));
+			playersData = response.data.data;
+		} catch (e) {
+			alert('Search failed: ' + e.message);
+		} finally {
+			disabled = false;
+		}
 	}
+
+	const setIpBan = async () => {
+		if (!searchQuery.trim() || ipBanReason.trim().length < 3) {
+			alert('Enter an IP hash and an internal reason of at least 3 characters.');
+			return;
+		}
+		disabled = true;
+		try {
+			await request.post('/ip-ban', { ipHash: searchQuery.trim(), internalReason: ipBanReason.trim() });
+			ipIsBanned = true;
+			ipStatusLoaded = true;
+		} catch (e) {
+			alert('IP ban failed: ' + e.message);
+		} finally {
+			disabled = false;
+		}
+	};
+
+	const revokeIpBan = async () => {
+		disabled = true;
+		try {
+			await request.delete('/ip-ban?ipHash=' + encodeURIComponent(searchQuery.trim()));
+			ipIsBanned = false;
+			ipStatusLoaded = true;
+		} catch (e) {
+			alert('IP unban failed: ' + e.message);
+		} finally {
+			disabled = false;
+		}
+	};
 
 	$: {
 		searchUsers();
 	}
-	let searchQuery = "";
 </script>
 
 <style>
@@ -154,15 +228,42 @@
 				<option value="10000">10K</option>
 			</select>
 		</div>
-		<div class="col-12 col-md-12 col-lg-2">
-			<label for="search-username">SEARCH USERNAME</label>
+		<div class="col-12 col-md-6 col-lg-2">
+			<label for="search-type">SEARCH BY</label>
+			<select
+				{disabled}
+				id="search-type"
+				class="form-control"
+				bind:value={searchType}
+				on:change={() => {
+					playersData = [];
+					offset = 0;
+					ipIsBanned = false;
+					ipStatusLoaded = false;
+				}}
+			>
+				<option value="username">Username</option>
+				<option value="userId">User ID</option>
+				{#if isRank('owner')}
+					<option value="macAddress">MAC address</option>
+					<option value="ipHash">IP hash</option>
+				{/if}
+			</select>
+		</div>
+		<div class="col-12 col-md-6 col-lg-2">
+			<label for="user-search-query">
+				{searchType === 'username' ? 'USERNAME' : searchType === 'userId' ? 'USER ID' : searchType === 'macAddress' ? 'MAC ADDRESS' : 'IP HASH'}
+			</label>
 			<input
 				{disabled}
 				class="form-control"
 				type="text"
 				bind:value={searchQuery}
-				maxlength={32}
-				id="search-username"
+				maxlength={searchType === 'ipHash' ? 128 : searchType === 'macAddress' ? 17 : 32}
+				id="user-search-query"
+				on:keydown={(event) => {
+					if (event.key === 'Enter') searchUsers();
+				}}
 			/>
 		</div>
 		<div class="col-12 col-md-12 col-lg-2">
@@ -171,6 +272,34 @@
 				searchUsers();
 			}}>Search</button>
 		</div>
+		{#if searchType === 'macAddress' && isRank('owner')}
+			<div class="col-12">
+				<div class="form-check mt-2">
+					<input class="form-check-input" type="checkbox" id="exact-mac-set" bind:checked={exactMacSetOnly} />
+					<label class="form-check-label" for="exact-mac-set">
+						Only show accounts whose complete MAC-address set is shared by another result
+					</label>
+				</div>
+				<small class="text-muted">MAC set comparison is exact and order-independent.</small>
+			</div>
+		{/if}
+		{#if searchType === 'ipHash' && isRank('owner') && searchQuery.trim() && ipStatusLoaded}
+			<div class="col-12 mt-2">
+				<div class="card card-body">
+					<p class="mb-2">
+						IP hash status:
+						<span class={`badge ${ipIsBanned ? 'bg-danger' : 'bg-success'}`}>{ipIsBanned ? 'Banned' : 'Not banned'}</span>
+					</p>
+					{#if ipIsBanned}
+						<button class="btn btn-outline-success" {disabled} on:click={revokeIpBan}>Revoke IP ban</button>
+					{:else}
+						<textarea class="form-control mb-2" rows={2} bind:value={ipBanReason} placeholder="Internal reason (required)"></textarea>
+						<button class="btn btn-danger" {disabled} on:click={setIpBan}>Ban exact IP hash</button>
+					{/if}
+					<small class="text-muted mt-2">This reserves the hash in the ban registry. IP hashes are not collected or enforced yet.</small>
+				</div>
+			</div>
+		{/if}
 		{#if playersData && playersData.filter(v => v.checked).length !== 0}
 			<div class="col-12">
 				<p class="mb-0 fw-bold">Mass Action ({playersData.filter(v => v.checked).length})</p>
@@ -255,6 +384,8 @@
 						<th>Created</th>
 						<th>Online</th>
 						<th>Status</th>
+						{#if searchType === 'macAddress'}<th>Complete MAC set</th>{/if}
+						{#if searchType === 'ipHash'}<th>Observed actions</th>{/if}
 						<th>Join App</th>
 						<th>RBX</th>
 						<th>TX</th>
@@ -287,8 +418,16 @@
 									<span class="badge bg-warning">{i.status}</span>
 								{/if}
 							</td>
+							{#if searchType === 'macAddress'}
+				<td><small>{(i.macAddresses || []).join(', ') || '-'}</small></td>
+							{/if}
+							{#if searchType === 'ipHash'}
+				<td><small>{(i.actions || []).join(', ') || '-'}</small></td>
+							{/if}
 							<td>
-								{#if i.invite_id !== null}
+								{#if searchType !== 'username'}
+					<span>-</span>
+								{:else if i.invite_id !== null}
 									<span class="badge bg-primary">
 										<a class="text-white" href={`/admin/manage-user/${i.invite_author_id}`}>
 											Invited
@@ -322,6 +461,7 @@
 				</tbody>
 			</table>
 		</div>
+		{#if searchType === 'username'}
 		<div class="col-12">
 			<nav aria-label="Page navigation example">
 				<ul class="pagination">
@@ -361,5 +501,6 @@
 				</ul>
 			</nav>
 		</div>
+		{/if}
 	</div>
 </Main>

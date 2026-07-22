@@ -24,6 +24,7 @@ using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 using ServiceProvider = Roblox.Services.ServiceProvider;
 using Type = Roblox.Models.Assets.Type;
 using Roblox.Web.Infrastructure.Metadata;
+using Roblox.Website.HostedServices;
 
 namespace Roblox.Website.Controllers
 {
@@ -327,6 +328,8 @@ namespace Roblox.Website.Controllers
         }
 
         [HttpPostBypass("game/validate-machine")]
+        [RequireRobloxSession]
+        [RequireRobloxClient]
         public async Task<IActionResult> ValidateMachine([FromForm] List<string> macAddresses)
         {
             try {
@@ -336,16 +339,37 @@ namespace Roblox.Website.Controllers
                 return NotFound(null);
             }
 
-            if (macAddresses == null || macAddresses.Count == 0)
+            if (macAddresses == null || macAddresses.Count == 0 || macAddresses.Count > 32)
                 return NotFound(null);
 
             long userId = userSession.userId;
 
-            foreach (var macString in macAddresses) 
-                try {
-                    var physicalMac = PhysicalAddress.Parse(macString.ToUpper());
-                    await services.users.SetMacAddress(userId, physicalMac);
-                } catch(FormatException) {}
+            var parsedMacAddresses = new Dictionary<string, PhysicalAddress>(StringComparer.Ordinal);
+            foreach (var macString in macAddresses)
+            {
+                if (string.IsNullOrWhiteSpace(macString))
+                    continue;
+                try
+                {
+                    var normalizedMac = macString.Trim().Replace(":", string.Empty).Replace("-", string.Empty);
+                    var physicalMac = PhysicalAddress.Parse(normalizedMac.ToUpperInvariant());
+                    if (physicalMac.GetAddressBytes().Length != 6)
+                        continue;
+                    parsedMacAddresses.TryAdd(physicalMac.ToString(), physicalMac);
+                }
+                catch (Exception exception) when (exception is FormatException or ArgumentException)
+                {
+                }
+            }
+
+            if (parsedMacAddresses.Count == 0)
+                return NotFound(null);
+
+            var machineBan = await services.machineBan.RecordAndScheduleAsync(userId, parsedMacAddresses.Values.ToArray());
+            if (machineBan.JobCreated)
+                HttpContext.RequestServices.GetRequiredService<MachineBanEnforcementSignal>().Notify();
+            if (machineBan.IsMatch)
+                return NotFound(null);
             
             try {
                 var userInfo = await services.users.GetUserById(userId);

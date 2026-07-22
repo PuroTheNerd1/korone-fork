@@ -158,6 +158,8 @@ public static class RobloxWebsiteBuilderExtensions
         services.AddHostedService<FeatureFlagRefreshHostedService>();
         services.AddHostedService<AvatarThumbnailCleanupHostedService>();
         services.AddHostedService<Roblox.Services.Assets.AssetRenderQueueWorker>();
+        services.AddSingleton<MachineBanEnforcementSignal>();
+        services.AddHostedService<MachineBanEnforcementHostedService>();
 
         return services;
     }

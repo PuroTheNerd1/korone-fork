@@ -4,7 +4,9 @@ name: korone-dev
 
 x-dotnet-dev-env: &dotnet-dev-env
   ASPNETCORE_ENVIRONMENT: Development
-  DOTNET_USE_POLLING_FILE_WATCHER: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_NOLOGO: "true"
+  DOTNET_gcServer: "0"
   Postgres: "Host=postgres;Port=5432;Database=economy;Username=roblox;Password=roblox_dev_pass"
   Redis: "redis:6379"
   RedisAuthentication: ""
@@ -16,6 +18,9 @@ x-dotnet-dev-env: &dotnet-dev-env
   RccAuthorization: "KoroneRcc-dev-secret"
   Jwt__Sessions: "KoroneSessions-dev-secret"
   BotAuthorization: "KoroneBot-dev-secret"
+  Discord__BotToken: ""
+  Discord__GuildId: ""
+  Discord__LogChannelId: ""
   Render__BaseUrl: "http://host.docker.internal:3521"
   Render__AssetQueue__FastLaneConcurrency: "2"
   Render__AssetQueue__StreamConcurrency: "2"
@@ -42,20 +47,23 @@ x-dotnet-dev-env: &dotnet-dev-env
   OpenTelemetry__OtlpEndpoint: "http://otel-collector:4317"
 
 x-dotnet-dev-service: &dotnet-dev-service
-  image: mcr.microsoft.com/dotnet/sdk:10.0
+  image: mcr.microsoft.com/dotnet/aspnet:10.0
   volumes:
     - .:/srv/app
-    - dotnet_cache:/root/.nuget
-    - dotnet_artifacts:/tmp/korone-artifacts
+    - dotnet_artifacts:/tmp/korone-artifacts:ro
   networks:
     - economy
   depends_on:
     dotnet-build:
       condition: service_completed_successfully
+    dotnet-watch:
+      condition: service_started
     db-migrate:
       condition: service_completed_successfully
     redis:
       condition: service_healthy
+  mem_limit: "${DOTNET_SERVICE_MEMORY_LIMIT:-1024m}"
+  cpus: "${DOTNET_SERVICE_CPU_LIMIT:-1.0}"
   restart: unless-stopped
 
 volumes:
@@ -211,23 +219,71 @@ services:
       - dotnet_artifacts:/tmp/korone-artifacts
     networks:
       - economy
-    command: >
-      sh -c "dotnet build Roblox.Website/Roblox.Website.csproj --artifacts-path /tmp/korone-artifacts/roblox-website -v minimal &&
-      dotnet build Roblox.ApiProxy/Roblox.ApiProxy.csproj --artifacts-path /tmp/korone-artifacts/api-proxy -v minimal &&
-      dotnet build Services/Roblox.Services.DataStore/Roblox.Services.DataStore.csproj --artifacts-path /tmp/korone-artifacts/game-persistence -v minimal &&
-      dotnet build Services/Roblox.Services.Api/Roblox.Services.Api.csproj --artifacts-path /tmp/korone-artifacts/api-service -v minimal &&
-      dotnet build Services/Roblox.Services.Donation/Roblox.Services.Donation.csproj --artifacts-path /tmp/korone-artifacts/donation-service -v minimal &&
-      dotnet build Services/Roblox.Services.Data/Roblox.Services.Data.csproj --artifacts-path /tmp/korone-artifacts/data-service -v minimal &&
-      dotnet build Services/Roblox.Services.Avatar/Roblox.Services.Avatar.csproj --artifacts-path /tmp/korone-artifacts/avatar-service -v minimal &&
-      dotnet build Services/Roblox.Services.Thumbnails/Roblox.Services.Thumbnails.csproj --artifacts-path /tmp/korone-artifacts/thumbnails-service -v minimal &&
-      dotnet build Services/Roblox.Services.Users/Roblox.Services.Users.csproj --artifacts-path /tmp/korone-artifacts/users-service -v minimal &&
-      dotnet build Services/Roblox.Services.Admin/Roblox.Services.Admin.csproj --artifacts-path /tmp/korone-artifacts/admin-service -v minimal"
+    environment:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+      DOTNET_NOLOGO: "true"
+      DOTNET_CLI_USE_MSBUILD_SERVER: "false"
+      MSBUILDDISABLENODEREUSE: "1"
+      DOTNET_DISABLE_BUILD_SERVERS: "true"
+    command: sh /srv/app/scripts/docker-dotnet-init.sh
+    mem_limit: "${DOTNET_BUILD_MEMORY_LIMIT:-3072m}"
+    cpus: "${DOTNET_BUILD_CPU_LIMIT:-2.0}"
     restart: "no"
+
+  dotnet-watch:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    working_dir: /srv/app/Roblox
+    volumes:
+      - .:/srv/app
+      - dotnet_cache:/root/.nuget
+      - dotnet_artifacts:/tmp/korone-artifacts
+    networks:
+      - economy
+    depends_on:
+      dotnet-build:
+        condition: service_completed_successfully
+    environment:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+      DOTNET_NOLOGO: "true"
+      DOTNET_WATCH_POLL_SECONDS: "${DOTNET_WATCH_POLL_SECONDS:-5}"
+    command: sh /srv/app/scripts/docker-dotnet-watch.sh
+    mem_limit: "${DOTNET_BUILD_MEMORY_LIMIT:-3072m}"
+    cpus: "${DOTNET_BUILD_CPU_LIMIT:-2.0}"
+    restart: unless-stopped
 
   api-proxy:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Roblox.ApiProxy
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/api-proxy run --no-build --no-restore --urls http://0.0.0.0:5200
+    # YARP IDs contain hyphens, so their overrides cannot travel through /bin/sh
+    # environment variables. Command-line configuration preserves the keys.
+    command:
+      - sh
+      - /srv/app/scripts/docker-dotnet-run.sh
+      - Roblox.ApiProxy
+      - --urls
+      - http://0.0.0.0:5200
+      - --ReverseProxy:Clusters:website-cluster:Destinations:primary:Address=http://roblox-website:5000
+      - --ReverseProxy:Clusters:gamepersistence-cluster:Destinations:primary:Address=http://game-persistence:5203
+      - --ReverseProxy:Clusters:api-cluster:Destinations:primary:Address=http://api-service:5204
+      - --ReverseProxy:Clusters:admin-cluster:Destinations:primary:Address=http://admin-service:5210
+      - --ReverseProxy:Clusters:games-cluster:Destinations:primary:Address=http://games-service:5211
+      - --ReverseProxy:Clusters:data-cluster:Destinations:primary:Address=http://data-service:5206
+      - --ReverseProxy:Clusters:donation-cluster:Destinations:primary:Address=http://donation-service:5205
+      - --ReverseProxy:Clusters:avatar-cluster:Destinations:primary:Address=http://avatar-service:5207
+      - --ReverseProxy:Clusters:thumbnails-cluster:Destinations:primary:Address=http://thumbnails-service:5208
+      - --ReverseProxy:Clusters:users-cluster:Destinations:primary:Address=http://users-service:5209
+      - --ReverseProxy:Routes:avatar-apisite-route:Match:Hosts:0=localhost
+      - --ReverseProxy:Routes:avatar-apisite-route:Match:Hosts:1=127.0.0.1
+      - --ReverseProxy:Routes:avatar-apisite-route:Match:Hosts:2=www.pekora.zip
+      - --ReverseProxy:Routes:thumbnails-apisite-route:Match:Hosts:0=localhost
+      - --ReverseProxy:Routes:thumbnails-apisite-route:Match:Hosts:1=127.0.0.1
+      - --ReverseProxy:Routes:thumbnails-apisite-route:Match:Hosts:2=www.pekora.zip
+      - --ReverseProxy:Routes:users-apisite-route:Match:Hosts:0=localhost
+      - --ReverseProxy:Routes:users-apisite-route:Match:Hosts:1=127.0.0.1
+      - --ReverseProxy:Routes:users-apisite-route:Match:Hosts:2=www.pekora.zip
+      - --ReverseProxy:Routes:games-apisite-route:Match:Hosts:0=localhost
+      - --ReverseProxy:Routes:games-apisite-route:Match:Hosts:1=127.0.0.1
+      - --ReverseProxy:Routes:games-apisite-route:Match:Hosts:2=www.pekora.zip
     ports:
       - "127.0.0.1:5200:5200"
     environment:
@@ -238,24 +294,16 @@ services:
       FrontendProxy__PublicHosts__2: "pekora.zip"
       FrontendProxy__PublicHosts__3: "www.pekora.zip"
       InternalServiceHosts__0: "localhost"
-      ReverseProxy__Clusters__website-cluster__Destinations__primary__Address: "http://roblox-website:5000"
-      ReverseProxy__Clusters__gamepersistence-cluster__Destinations__primary__Address: "http://game-persistence:5203"
-      ReverseProxy__Clusters__api-cluster__Destinations__primary__Address: "http://api-service:5204"
-      ReverseProxy__Clusters__donation-cluster__Destinations__primary__Address: "http://donation-service:5205"
-      ReverseProxy__Clusters__avatar-cluster__Destinations__primary__Address: "http://avatar-service:5207"
-      ReverseProxy__Clusters__thumbnails-cluster__Destinations__primary__Address: "http://thumbnails-service:5208"
-      ReverseProxy__Clusters__users-cluster__Destinations__primary__Address: "http://users-service:5209"
-      ReverseProxy__Clusters__admin-cluster__Destinations__primary__Address: "http://admin-service:5210"
-      ReverseProxy__Routes__avatar-apisite-route__Match__Hosts__0: "localhost"
-      ReverseProxy__Routes__avatar-apisite-route__Match__Hosts__1: "127.0.0.1"
-      ReverseProxy__Routes__avatar-apisite-route__Match__Hosts__2: "www.pekora.zip"
-      ReverseProxy__Routes__thumbnails-apisite-route__Match__Hosts__0: "localhost"
-      ReverseProxy__Routes__thumbnails-apisite-route__Match__Hosts__1: "127.0.0.1"
-      ReverseProxy__Routes__thumbnails-apisite-route__Match__Hosts__2: "www.pekora.zip"
-      ReverseProxy__Routes__users-apisite-route__Match__Hosts__0: "localhost"
-      ReverseProxy__Routes__users-apisite-route__Match__Hosts__1: "127.0.0.1"
-      ReverseProxy__Routes__users-apisite-route__Match__Hosts__2: "www.pekora.zip"
+      InternalServiceHosts__16: "127.0.0.1"
     depends_on:
+      dotnet-build:
+        condition: service_completed_successfully
+      dotnet-watch:
+        condition: service_started
+      db-migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
       roblox-website:
         condition: service_started
       game-persistence:
@@ -270,6 +318,8 @@ services:
         condition: service_started
       users-service:
         condition: service_started
+      games-service:
+        condition: service_started
       admin-service:
         condition: service_started
       frontend:
@@ -278,7 +328,7 @@ services:
   roblox-website:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Roblox.Website
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/roblox-website run --no-build --no-restore --urls http://0.0.0.0:5000
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Website --urls http://0.0.0.0:5000
     expose:
       - "5000"
     environment:
@@ -294,7 +344,7 @@ services:
   game-persistence:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Services/Roblox.Services.DataStore
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/game-persistence run --no-build --no-restore --urls http://0.0.0.0:5203
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Services.DataStore --urls http://0.0.0.0:5203
     expose:
       - "5203"
     environment:
@@ -303,7 +353,7 @@ services:
   api-service:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Services/Roblox.Services.Api
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/api-service run --no-build --no-restore --urls http://0.0.0.0:5204
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Services.Api --urls http://0.0.0.0:5204
     expose:
       - "5204"
     environment:
@@ -312,7 +362,7 @@ services:
   donation-service:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Services/Roblox.Services.Donation
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/donation-service run --no-build --no-restore --urls http://0.0.0.0:5205
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Services.Donation --urls http://0.0.0.0:5205
     expose:
       - "5205"
     environment:
@@ -327,7 +377,7 @@ services:
   data-service:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Services/Roblox.Services.Data
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/data-service run --no-build --no-restore --urls http://0.0.0.0:5206
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Services.Data --urls http://0.0.0.0:5206
     expose:
       - "5206"
     environment:
@@ -336,7 +386,7 @@ services:
   avatar-service:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Services/Roblox.Services.Avatar
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/avatar-service run --no-build --no-restore --urls http://0.0.0.0:5207
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Services.Avatar --urls http://0.0.0.0:5207
     expose:
       - "5207"
     environment:
@@ -345,7 +395,7 @@ services:
   thumbnails-service:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Services/Roblox.Services.Thumbnails
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/thumbnails-service run --no-build --no-restore --urls http://0.0.0.0:5208
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Services.Thumbnails --urls http://0.0.0.0:5208
     expose:
       - "5208"
     environment:
@@ -354,17 +404,26 @@ services:
   users-service:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Services/Roblox.Services.Users
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/users-service run --no-build --no-restore --urls http://0.0.0.0:5209
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Services.Users --urls http://0.0.0.0:5209
     expose:
       - "5209"
     environment:
       <<: *dotnet-dev-env
       OwnerUserId__0: "1"
 
+  games-service:
+    <<: *dotnet-dev-service
+    working_dir: /srv/app/Roblox/Services/Roblox.Services.Games
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Services.Games --urls http://0.0.0.0:5211
+    expose:
+      - "5211"
+    environment:
+      <<: *dotnet-dev-env
+
   admin-service:
     <<: *dotnet-dev-service
     working_dir: /srv/app/Roblox/Services/Roblox.Services.Admin
-    command: dotnet watch --non-interactive --property:UseArtifactsOutput=true --property:ArtifactsPath=/tmp/korone-artifacts/admin-service run --no-build --no-restore --urls http://0.0.0.0:5210
+    command: sh /srv/app/scripts/docker-dotnet-run.sh Roblox.Services.Admin --urls http://0.0.0.0:5210
     expose:
       - "5210"
     environment:
@@ -413,18 +472,13 @@ services:
       - ./frontend:/app
       - ./frontend/config.docker-dev.json:/app/config.json:ro
       - frontend_nm:/app/node_modules
-    command: >
-      sh -c "LOCK_HASH=$$(sha256sum package.json package-lock.json 2>/dev/null | sha256sum | cut -d' ' -f1);
-      if [ ! -f node_modules/.deps-hash ] || [ \"$$(cat node_modules/.deps-hash)\" != \"$$LOCK_HASH\" ]; then
-      npm install && echo \"$$LOCK_HASH\" > node_modules/.deps-hash;
-      fi;
-      npm run dev"
+    command: sh /app/scripts/docker-dev.sh
     ports:
       - "127.0.0.1:3000:3000"
     networks:
       - economy
     environment:
       PORT: "3000"
-      WATCHPACK_POLLING: "true"
+      WATCHPACK_POLLING: "1000"
       CHOKIDAR_USEPOLLING: "true"
     restart: unless-stopped

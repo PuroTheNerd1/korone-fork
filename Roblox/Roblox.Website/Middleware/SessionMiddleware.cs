@@ -50,7 +50,7 @@ public class SessionMiddleware
 
     private async Task OnBadSession(HttpContext ctx)
     {
-        ctx.Response.Cookies.Delete(CookieName);
+        RobloxSessionCookieWriter.DeleteSessionCookies(ctx);
         await _next(ctx);
     }
 
@@ -61,7 +61,8 @@ public class SessionMiddleware
         ctx.SetRobloxRequestContext(RobloxRequestContextFactory.CreateAnonymous(ctx));
         try
         {
-            if (ctx.Request.Cookies.ContainsKey(CookieName) || ctx.Request.Cookies.ContainsKey(AltCookieName))
+            // Keep legacy Website authentication aligned with all shared aliases, including .ROBLOSECURITY.
+            if (RobloxSessionResolver.GetCookieValue(ctx) != null)
             {
                 var resolved = await RobloxSessionResolver.TryResolveFromCookie(ctx);
                 if (resolved == null)

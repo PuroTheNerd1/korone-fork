@@ -76,6 +76,8 @@ public class AdminApiService : ServiceBase
     private TradesService? _trades;
     private UsersService? _users;
     private DiscordBotApi? _discordBotApi;
+    private MachineBanService? _machineBan;
+    private PermanentAccountTerminationService? _permanentTermination;
 
     private AbuseReportService abuseReport => _abuseReport ??= ServiceProvider.GetOrCreate<AbuseReportService>(this);
     private AccountInformationService accountInformation => _accountInformation ??= ServiceProvider.GetOrCreate<AccountInformationService>(this);
@@ -93,6 +95,9 @@ public class AdminApiService : ServiceBase
     private TradesService trades => _trades ??= ServiceProvider.GetOrCreate<TradesService>(this);
     private UsersService users => _users ??= ServiceProvider.GetOrCreate<UsersService>(this);
     private DiscordBotApi discordBotApi => _discordBotApi ??= new DiscordBotApi(Roblox.Configuration.DiscordBotToken);
+    private MachineBanService machineBan => _machineBan ??= ServiceProvider.GetOrCreate<MachineBanService>(this);
+    private PermanentAccountTerminationService permanentTermination =>
+        _permanentTermination ??= ServiceProvider.GetOrCreate<PermanentAccountTerminationService>(this);
 
     private static AdminDataRow ToAdminRow(object row)
     {
@@ -854,9 +859,13 @@ public class AdminApiService : ServiceBase
         var sql = new SqlBuilder();
         var t = sql.AddTemplate(
             "SELECT u.id, u.username, u.description, u.created_at, u.online_at, u.status, u.is_18_plus, ja.id as join_application_id, ja.status as join_application_status, ui.id as invite_id, ui.author_id as invite_author_id, us.*, ue.* FROM \"user\" u LEFT JOIN user_settings us ON us.user_id = u.id LEFT JOIN user_economy ue on u.id = ue.user_id LEFT JOIN join_application ja on u.id = ja.user_id LEFT JOIN user_invite ui on u.id = ui.user_id /**where**/ /**orderby**/ LIMIT :limit OFFSET :offset", new { limit, offset });
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var normalizedQuery = query.Trim();
+            sql.Where("u.username ILIKE :query", new { query = "%" + normalizedQuery + "%" });
+            sql.OrderBy("CASE WHEN LOWER(u.username) = LOWER(:exactQuery) THEN 0 ELSE 1 END", new { exactQuery = normalizedQuery });
+        }
         sql.OrderBy(orderByColumn + " " + orderByMode + " NULLS LAST");
-        if (!string.IsNullOrEmpty(query))
-            sql.Where("u.username ILIKE :query", new { query = "%" + query + "%" });
         if (userId != null)
             sql.Where("u.id = :userId", new { userId });
 
@@ -929,18 +938,7 @@ public class AdminApiService : ServiceBase
         if (status.accountStatus == AccountStatus.Forgotten)
             throw new StaffException("Forgotten accounts cannot be un-banned");
 
-        await db.ExecuteAsync("UPDATE \"user\" SET status = :st WHERE id = :id", new
-        {
-            st = AccountStatus.Ok,
-            id = request.userId,
-        });
-        await users.InvalidateUserInfoCache(request.userId);
-        await db.ExecuteAsync("INSERT INTO moderation_unban (user_id, actor_id) VALUES (:user_id, :actor_id)", new
-        {
-            user_id = request.userId,
-            actor_id = actor.userId,
-        });
-        await db.ExecuteAsync("DELETE FROM user_ban WHERE user_id = :id", new { id = request.userId });
+        await machineBan.UnbanAsync(request.userId, actor.userId);
     }
 
     public async Task BanUserAsync(BanUserRequest request, AdminActorContext actor, Func<long, bool> isOwnerUserId)
@@ -953,6 +951,13 @@ public class AdminApiService : ServiceBase
             : DateTime.SpecifyKind(DateTime.Parse(request.expires), DateTimeKind.Utc);
 
         var doesExpire = expirationDate != null;
+        if (request.isMachineBan && !actor.isOwner)
+            throw new StaffException("Only an owner can machine ban users");
+        if (request.isMachineBan && doesExpire)
+            throw new StaffException("Machine bans must be permanent");
+        if (request.isMachineBan && (string.IsNullOrWhiteSpace(request.internalReason) || request.internalReason.Length < 3))
+            throw new StaffException("Internal reason is required for machine bans");
+
         var info = await users.GetUserById(request.userId);
         if (actor.userId == request.userId)
             throw new StaffException("You cannot ban yourself");
@@ -960,6 +965,22 @@ public class AdminApiService : ServiceBase
             throw new StaffException("You cannot ban this user. Current status is " + info.accountStatus);
         if (await IsStaffAsync(request.userId, isOwnerUserId) && !actor.isOwner)
             throw new StaffException("You cannot ban this user.");
+
+        if (request.isMachineBan)
+        {
+            await machineBan.ActivateAsync(request.userId, actor.userId, request.internalReason);
+            return;
+        }
+
+        if (!doesExpire)
+        {
+            await permanentTermination.TerminateAsync(
+                request.userId,
+                actor.userId,
+                request.reason,
+                request.internalReason);
+            return;
+        }
 
         await db.ExecuteAsync(
             "INSERT INTO user_ban (user_id, reason, author_user_id, expired_at, internal_reason) VALUES (:user_id, :reason, :author, :expires, :internal_reason)", new
@@ -980,7 +1001,7 @@ public class AdminApiService : ServiceBase
         });
         await db.ExecuteAsync("UPDATE \"user\" SET status = :st WHERE id = :id", new
         {
-            st = doesExpire ? AccountStatus.Suppressed : AccountStatus.Deleted,
+            st = AccountStatus.Suppressed,
             id = request.userId,
         });
         await users.InvalidateUserInfoCache(request.userId);
@@ -1139,6 +1160,235 @@ public class AdminApiService : ServiceBase
         }
 
         return result;
+    }
+
+    public async Task<AdminUserAltAccountsResponse> GetUserAltAccountScoresAsync(AdminActorContext actor, long userId)
+    {
+        if (!actor.isOwner)
+            throw new NotFoundException();
+
+        await users.GetUserById(userId);
+        var rawSourceMacs = await db.QueryAsync<string>(
+            "SELECT mac_address::text FROM user_mac_address WHERE user_id = @userId",
+            new { userId });
+        var sourceMacs = NormalizeEvidenceMacAddresses(rawSourceMacs);
+        if (sourceMacs.Count == 0)
+            return new AdminUserAltAccountsResponse();
+
+        var candidateRows = (await db.QueryAsync<AltAccountEvidenceRow>(
+            @"SELECT u.id, u.username, u.status,
+                     array_agg(DISTINCT all_mac.mac_address::text ORDER BY all_mac.mac_address::text) AS ""macAddresses""
+              FROM user_mac_address overlap_mac
+              JOIN ""user"" u ON u.id = overlap_mac.user_id
+              JOIN user_mac_address all_mac ON all_mac.user_id = u.id
+              WHERE overlap_mac.mac_address::text = ANY(@sourceMacs)
+                AND u.id != @userId
+              GROUP BY u.id, u.username, u.status",
+            new { sourceMacs = sourceMacs.Select(value => value.ToLowerInvariant()).ToArray(), userId })).ToList();
+
+        var evidenceRows = candidateRows.Select(candidate =>
+        {
+            var candidateMacs = NormalizeEvidenceMacAddresses(candidate.macAddresses);
+            var sharedMacCount = candidateMacs.Intersect(sourceMacs, StringComparer.OrdinalIgnoreCase).Count();
+            var unionCount = candidateMacs.Union(sourceMacs, StringComparer.OrdinalIgnoreCase).Count();
+            var exactMacSet = sourceMacs.SetEquals(candidateMacs);
+            return new AltAccountEvidence(candidate, candidateMacs.Count, sharedMacCount, unionCount, exactMacSet);
+        }).Where(evidence => evidence.sharedMacCount > 0).ToList();
+
+        var sharedIpCounts = new Dictionary<long, int>();
+        if (evidenceRows.Count != 0)
+        {
+            var ipRows = await db.QueryAsync<AltSharedIpRow>(
+                @"SELECT candidate.user_id AS ""userId"",
+                         COUNT(DISTINCT candidate.ip_hash)::int AS ""sharedIpHashCount""
+                  FROM user_ip_address source
+                  JOIN user_ip_address candidate ON candidate.ip_hash = source.ip_hash
+                  WHERE source.user_id = @userId
+                    AND candidate.user_id = ANY(@candidateIds)
+                  GROUP BY candidate.user_id",
+                new { userId, candidateIds = evidenceRows.Select(value => value.row.id).ToArray() });
+            sharedIpCounts = ipRows.ToDictionary(value => value.userId, value => value.sharedIpHashCount);
+        }
+
+        var result = evidenceRows.Select(evidence =>
+        {
+            var sharedIpHashCount = sharedIpCounts.GetValueOrDefault(evidence.row.id);
+            var similarity = evidence.unionCount == 0
+                ? 0
+                : (double)evidence.sharedMacCount / evidence.unionCount;
+            return new AdminAltAccountScoreEntry
+            {
+                id = evidence.row.id,
+                username = evidence.row.username,
+                status = evidence.row.status.ToString(),
+                score = CalculateAltAccountScore(evidence.exactMacSet, similarity, sharedIpHashCount),
+                evidenceLevel = evidence.exactMacSet ? "Exact MAC set" : "Partial MAC overlap",
+                exactMacSet = evidence.exactMacSet,
+                sharedMacCount = evidence.sharedMacCount,
+                candidateMacCount = evidence.candidateMacCount,
+                sharedIpHashCount = sharedIpHashCount,
+            };
+        }).OrderByDescending(value => value.score).ThenBy(value => value.id).ToList();
+
+        return new AdminUserAltAccountsResponse
+        {
+            sourceMacCount = sourceMacs.Count,
+            data = result,
+        };
+    }
+
+    public static int CalculateAltAccountScore(bool exactMacSet, double macSetSimilarity, int sharedIpHashCount)
+    {
+        if (!exactMacSet && macSetSimilarity <= 0)
+            return 0;
+        var macScore = exactMacSet
+            ? 90
+            : Math.Min(75, 35 + (int)Math.Round(Math.Clamp(macSetSimilarity, 0, 1) * 40));
+        var ipBoost = Math.Min(10, Math.Max(0, sharedIpHashCount) * 5);
+        return Math.Min(100, macScore + ipBoost);
+    }
+
+    private static HashSet<string> NormalizeEvidenceMacAddresses(IEnumerable<string> values)
+    {
+        var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var value in values)
+        {
+            try
+            {
+                var address = PhysicalAddress.Parse(value.Replace(":", string.Empty).Replace("-", string.Empty));
+                if (!MachineBanService.IsExcludedMachineBanAddress(address))
+                    result.Add(FormatMacAddress(address.ToString()));
+            }
+            catch (FormatException)
+            {
+            }
+        }
+
+        return result;
+    }
+
+    public async Task<IReadOnlyCollection<AdminIdentitySearchEntry>> SearchUsersByMacAddressAsync(
+        AdminActorContext actor, string macAddress, bool exactSetOnly = false)
+    {
+        if (!actor.isOwner)
+            throw new NotFoundException();
+
+        string normalizedMac;
+        try
+        {
+            var parsedMac = PhysicalAddress.Parse(macAddress.Trim().Replace(":", string.Empty).Replace("-", string.Empty));
+            if (parsedMac.GetAddressBytes().Length != 6)
+                throw new FormatException();
+            normalizedMac = FormatMacAddress(parsedMac.ToString());
+        }
+        catch (Exception exception) when (exception is FormatException or ArgumentException)
+        {
+            throw new StaffException("Invalid MAC address");
+        }
+
+        var rows = (await db.QueryAsync<MacIdentitySearchRow>(
+            @"SELECT u.id, u.username, u.status,
+                     array_agg(DISTINCT all_mac.mac_address::text ORDER BY all_mac.mac_address::text) AS ""macAddresses""
+              FROM user_mac_address matched
+              JOIN ""user"" u ON u.id = matched.user_id
+              JOIN user_mac_address all_mac ON all_mac.user_id = u.id
+              WHERE matched.mac_address = @macAddress::macaddr
+              GROUP BY u.id, u.username, u.status
+              ORDER BY u.id ASC", new { macAddress = normalizedMac })).ToList();
+
+        if (exactSetOnly)
+        {
+            rows = rows
+                .GroupBy(row => string.Join('|', row.macAddresses.Select(FormatMacAddress)
+                    .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)), StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Count() > 1)
+                .SelectMany(group => group)
+                .OrderBy(row => row.id)
+                .ToList();
+        }
+
+        return rows.Select(row => new AdminIdentitySearchEntry
+        {
+            id = row.id,
+            username = row.username,
+            status = row.status.ToString(),
+            macAddresses = row.macAddresses.Select(FormatMacAddress)
+                .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+                .ToList(),
+        }).ToList();
+    }
+
+    public async Task<IReadOnlyCollection<AdminIdentitySearchEntry>> SearchUsersByIpHashAsync(
+        AdminActorContext actor, string ipHash)
+    {
+        if (!actor.isOwner)
+            throw new NotFoundException();
+        var normalizedHash = NormalizeIpHash(ipHash);
+
+        var rows = await db.QueryAsync<IpIdentitySearchRow>(
+            @"SELECT u.id, u.username, u.status,
+                     array_agg(DISTINCT ip.action ORDER BY ip.action) AS actions,
+                     MIN(ip.created_at) AS ""createdAt"", MAX(ip.updated_at) AS ""updatedAt""
+              FROM user_ip_address ip
+              JOIN ""user"" u ON u.id = ip.user_id
+              WHERE ip.ip_hash = @ipHash
+              GROUP BY u.id, u.username, u.status
+              ORDER BY u.id ASC", new { ipHash = normalizedHash });
+
+        return rows.Select(row => new AdminIdentitySearchEntry
+        {
+            id = row.id,
+            username = row.username,
+            status = row.status.ToString(),
+            actions = row.actions,
+            createdAt = row.createdAt,
+            updatedAt = row.updatedAt,
+        }).ToList();
+    }
+
+    public async Task<AdminIpBanStatusResponse> GetIpBanStatusAsync(AdminActorContext actor, string ipHash)
+    {
+        if (!actor.isOwner)
+            throw new NotFoundException();
+        var normalizedHash = NormalizeIpHash(ipHash);
+        var isBanned = await db.QuerySingleOrDefaultAsync<bool>(
+            "SELECT EXISTS(SELECT 1 FROM user_ip_ban WHERE ip_hash = @ipHash AND revoked_at IS NULL)",
+            new { ipHash = normalizedHash });
+        return new AdminIpBanStatusResponse { ipHash = normalizedHash, isBanned = isBanned };
+    }
+
+    public async Task SetIpBanAsync(AdminActorContext actor, AdminIpBanRequest request)
+    {
+        if (!actor.isOwner)
+            throw new NotFoundException();
+        var normalizedHash = NormalizeIpHash(request.ipHash);
+        var internalReason = request.internalReason.Trim();
+        if (internalReason.Length is < 3 or > 4096)
+            throw new StaffException("Internal reason must contain between 3 and 4096 characters");
+
+        await db.ExecuteAsync(
+            @"INSERT INTO user_ip_ban (ip_hash, actor_user_id, internal_reason)
+              VALUES (@ipHash, @actorUserId, @internalReason)
+              ON CONFLICT (ip_hash) DO UPDATE SET
+                  actor_user_id = EXCLUDED.actor_user_id,
+                  internal_reason = EXCLUDED.internal_reason,
+                  revoked_at = NULL,
+                  updated_at = now()", new
+            {
+                ipHash = normalizedHash,
+                actorUserId = actor.userId,
+                internalReason,
+            });
+    }
+
+    public async Task RevokeIpBanAsync(AdminActorContext actor, string ipHash)
+    {
+        if (!actor.isOwner)
+            throw new NotFoundException();
+        var normalizedHash = NormalizeIpHash(ipHash);
+        await db.ExecuteAsync(
+            "UPDATE user_ip_ban SET revoked_at = now(), updated_at = now() WHERE ip_hash = @ipHash AND revoked_at IS NULL",
+            new { ipHash = normalizedHash });
     }
 
     public async Task<IReadOnlyCollection<AdminUserBanHistoryEntry>> GetUserBanHistoryAsync(long userId)
@@ -3724,6 +3974,14 @@ Thank you for your understanding,
         return BitConverter.ToString(PhysicalAddress.Parse(rawMac.ToUpper().Replace(":", "")).GetAddressBytes()).Replace("-", ":");
     }
 
+    private static string NormalizeIpHash(string ipHash)
+    {
+        var normalized = ipHash?.Trim() ?? string.Empty;
+        if (normalized.Length is < 1 or > 128)
+            throw new StaffException("IP hash must contain between 1 and 128 characters");
+        return normalized;
+    }
+
     private static bool DoesActionHaveActioned(string action)
     {
         return action is "ban" or "unban" or "item" or "message";
@@ -3783,6 +4041,45 @@ Thank you for your understanding,
         public long id { get; set; }
         public string username { get; set; } = string.Empty;
         public AccountStatus status { get; set; }
+    }
+
+    private sealed class MacIdentitySearchRow
+    {
+        public long id { get; set; }
+        public string username { get; set; } = string.Empty;
+        public AccountStatus status { get; set; }
+        public string[] macAddresses { get; set; } = Array.Empty<string>();
+    }
+
+    private sealed class IpIdentitySearchRow
+    {
+        public long id { get; set; }
+        public string username { get; set; } = string.Empty;
+        public AccountStatus status { get; set; }
+        public string[] actions { get; set; } = Array.Empty<string>();
+        public DateTimeOffset createdAt { get; set; }
+        public DateTimeOffset updatedAt { get; set; }
+    }
+
+    private sealed class AltAccountEvidenceRow
+    {
+        public long id { get; set; }
+        public string username { get; set; } = string.Empty;
+        public AccountStatus status { get; set; }
+        public string[] macAddresses { get; set; } = Array.Empty<string>();
+    }
+
+    private sealed record AltAccountEvidence(
+        AltAccountEvidenceRow row,
+        int candidateMacCount,
+        int sharedMacCount,
+        int unionCount,
+        bool exactMacSet);
+
+    private sealed class AltSharedIpRow
+    {
+        public long userId { get; set; }
+        public int sharedIpHashCount { get; set; }
     }
 
     private sealed class ModerationBanHistoryRow

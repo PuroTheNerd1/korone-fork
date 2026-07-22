@@ -28,6 +28,7 @@
 	import ManagePermissions from "../components/users/ManagePermissions.svelte";
 
 	let userInfo;
+	let altAccounts;
 	const privacySettings = ["inventory_privacy", "theme", "year", "gender", "trade_privacy", "trade_filter", "private_message_privacy"];
 	const privacySettingToString = (setting: string): string => {
 		return setting
@@ -44,6 +45,9 @@
 			info = d.data;
 			return d;
 		});
+		altAccounts = rank.is('owner')
+			? request.get('/user/alt-accounts?userId=' + encodeURIComponent(userId)).then((d) => d.data)
+			: Promise.resolve(null);
 		modalVisible = false;
 	}
 	let title: string;
@@ -239,6 +243,59 @@
 					</div>
 				</div>
 				<ManageTextContent userId={userId} />
+
+				{#if rank.is('owner')}
+					<div class="card bg-dark text-light mt-3">
+						<div class="card card-body card-header">
+							<h3 class="mb-0">Alt Accounts</h3>
+						</div>
+						<div class="card-body">
+							<p class="text-muted">
+								Candidates require shared non-generic MAC evidence. A shared IP hash can only strengthen an existing MAC candidate and never creates one by itself.
+							</p>
+							{#await altAccounts}
+								<div class="spinner-border" />
+							{:then altData}
+								{#if !altData || altData.data.length === 0}
+									<p class="mb-0">No MAC-supported alternate accounts found.</p>
+								{:else}
+									<p>Compared against {altData.sourceMacCount} usable MAC address{altData.sourceMacCount === 1 ? '' : 'es'}.</p>
+									<div class="table-responsive">
+										<table class="table table-dark table-striped align-middle">
+											<thead>
+												<tr>
+													<th>User</th>
+													<th>Score</th>
+													<th>MAC evidence</th>
+													<th>IP support</th>
+													<th>Status</th>
+												</tr>
+											</thead>
+											<tbody>
+												{#each altData.data as candidate}
+													<tr>
+														<td><a use:link href={`/admin/manage-user/${candidate.id}`}>{candidate.username} (#{candidate.id})</a></td>
+														<td>
+															<span class={`badge ${candidate.score >= 90 ? 'bg-danger' : candidate.score >= 60 ? 'bg-warning text-dark' : 'bg-secondary'}`}>{candidate.score}/100</span>
+														</td>
+														<td>
+															<strong>{candidate.evidenceLevel}</strong><br />
+															<small>{candidate.sharedMacCount} shared; candidate has {candidate.candidateMacCount} usable total</small>
+														</td>
+														<td>{candidate.sharedIpHashCount ? `${candidate.sharedIpHashCount} shared hash${candidate.sharedIpHashCount === 1 ? '' : 'es'} (+${Math.min(10, candidate.sharedIpHashCount * 5)})` : 'None'}</td>
+														<td>{candidate.status}</td>
+													</tr>
+												{/each}
+											</tbody>
+										</table>
+									</div>
+								{/if}
+							{:catch altError}
+								<p class="text-danger mb-0">Could not load alt-account evidence: {altError.message}</p>
+							{/await}
+						</div>
+					</div>
+				{/if}
 
 				{#if rank.hasPermission("SetPermissions")}
 					<ManagePermissions userId={userId} />

@@ -274,6 +274,38 @@ public class AdminApiController : ControllerBase
         return await services.adminApi.GetUsersAsync(orderByColumn, orderByMode, limit, offset, query, userId);
     }
 
+    [HttpGet("user/search-by-mac"), StaffFilter(Access.ViewMacAddresses)]
+    public async Task<IReadOnlyCollection<AdminIdentitySearchEntry>> SearchUsersByMacAddress(
+        [Required, FromQuery] string macAddress, bool exactSetOnly = false)
+    {
+        return await services.adminApi.SearchUsersByMacAddressAsync(await GetActorContext(), macAddress, exactSetOnly);
+    }
+
+    [HttpGet("user/search-by-ip"), StaffFilter(Access.ViewMacAddresses)]
+    public async Task<IReadOnlyCollection<AdminIdentitySearchEntry>> SearchUsersByIpHash(
+        [Required, FromQuery] string ipHash)
+    {
+        return await services.adminApi.SearchUsersByIpHashAsync(await GetActorContext(), ipHash);
+    }
+
+    [HttpGet("ip-ban/status"), StaffFilter(Access.BanUser)]
+    public async Task<AdminIpBanStatusResponse> GetIpBanStatus([Required, FromQuery] string ipHash)
+    {
+        return await services.adminApi.GetIpBanStatusAsync(await GetActorContext(), ipHash);
+    }
+
+    [HttpPost("ip-ban"), StaffFilter(Access.BanUser)]
+    public async Task SetIpBan([Required, FromBody] AdminIpBanRequest request)
+    {
+        await services.adminApi.SetIpBanAsync(await GetActorContext(), request);
+    }
+
+    [HttpDelete("ip-ban"), StaffFilter(Access.BanUser)]
+    public async Task RevokeIpBan([Required, FromQuery] string ipHash)
+    {
+        await services.adminApi.RevokeIpBanAsync(await GetActorContext(), ipHash);
+    }
+
     [HttpGet("user"), StaffFilter(Access.GetUserDetailed)]
     public async Task<AdminDataRow> GetUserInfoDetailed(long userId)
     {
@@ -354,6 +386,12 @@ public class AdminApiController : ControllerBase
     public async Task<IReadOnlyCollection<AdminAltAccountByMacEntry>> GetAltAccountsByMac(int limit = 50, int offset = 0)
     {
         return await services.adminApi.GetAltAccountsByMacAsync(await GetActorContext(), limit, offset);
+    }
+
+    [HttpGet("user/alt-accounts"), StaffFilter(Access.ViewMacAddresses)]
+    public async Task<AdminUserAltAccountsResponse> GetUserAltAccounts([Required, FromQuery] long? userId)
+    {
+        return await services.adminApi.GetUserAltAccountScoresAsync(await GetActorContext(), userId!.Value);
     }
 
     [HttpGet("user/ban-history"), StaffFilter(Access.BanUser)]

@@ -52,6 +52,10 @@ public static class RobloxServiceInfrastructure
         Roblox.Configuration.R2AccessKey = configuration["CloudflareR2:AccessKey"] ?? Roblox.Configuration.R2AccessKey ?? string.Empty;
         Roblox.Configuration.R2SecretKey = configuration["CloudflareR2:SecretKey"] ?? Roblox.Configuration.R2SecretKey ?? string.Empty;
         Roblox.Configuration.R2BucketName = configuration["CloudflareR2:BucketName"] ?? Roblox.Configuration.R2BucketName ?? string.Empty;
+
+        Roblox.Configuration.DiscordBotToken = configuration["Discord:BotToken"] ?? Roblox.Configuration.DiscordBotToken ?? string.Empty;
+        Roblox.Configuration.DiscordGuildId = configuration["Discord:GuildId"] ?? Roblox.Configuration.DiscordGuildId ?? string.Empty;
+        Roblox.Configuration.DiscordLogChannelId = configuration["Discord:LogChannelId"] ?? Roblox.Configuration.DiscordLogChannelId ?? string.Empty;
     
         Roblox.Configuration.ArbiterAuthorization = configuration["ArbiterAuthorization"] ?? Roblox.Configuration.ArbiterAuthorization ?? string.Empty;
         

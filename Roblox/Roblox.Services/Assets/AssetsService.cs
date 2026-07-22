@@ -3652,7 +3652,7 @@ WHERE asset_type = :asset_type AND asset.id < :id AND NOT asset.is_18_plus ORDER
             category = "All",
             categoryId = CatalogCategory.All,
             orderIndex = 1,
-            name = "All Categories",
+            name = "View All Items",
             assetTypeIds = new List<long> { 11, 2, 12, 17, 18, 19, 8, 41, 42, 43, 44, 45, 46, 47, 61, 64, 65, 68, 67, 66, 69, 72, 51 },
             subCategories = new List<CatalogSubCategoryData>()
         },

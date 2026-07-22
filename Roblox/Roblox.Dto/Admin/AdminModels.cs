@@ -230,6 +230,51 @@ public sealed class AdminAltAccountUserEntry
     public string status { get; set; } = string.Empty;
 }
 
+public sealed class AdminIdentitySearchEntry
+{
+    public long id { get; set; }
+    public string username { get; set; } = string.Empty;
+    public string status { get; set; } = string.Empty;
+    public IEnumerable<string> macAddresses { get; set; } = Array.Empty<string>();
+    public IEnumerable<string> actions { get; set; } = Array.Empty<string>();
+    public DateTimeOffset? createdAt { get; set; }
+    public DateTimeOffset? updatedAt { get; set; }
+}
+
+public sealed class AdminIpBanStatusResponse
+{
+    public string ipHash { get; set; } = string.Empty;
+    public bool isBanned { get; set; }
+}
+
+public sealed class AdminIpBanRequest
+{
+    [Required, StringLength(128, MinimumLength = 1)]
+    public string ipHash { get; set; } = string.Empty;
+
+    [Required, StringLength(4096, MinimumLength = 3)]
+    public string internalReason { get; set; } = string.Empty;
+}
+
+public sealed class AdminUserAltAccountsResponse
+{
+    public int sourceMacCount { get; set; }
+    public IEnumerable<AdminAltAccountScoreEntry> data { get; set; } = Array.Empty<AdminAltAccountScoreEntry>();
+}
+
+public sealed class AdminAltAccountScoreEntry
+{
+    public long id { get; set; }
+    public string username { get; set; } = string.Empty;
+    public string status { get; set; } = string.Empty;
+    public int score { get; set; }
+    public string evidenceLevel { get; set; } = string.Empty;
+    public bool exactMacSet { get; set; }
+    public int sharedMacCount { get; set; }
+    public int candidateMacCount { get; set; }
+    public int sharedIpHashCount { get; set; }
+}
+
 public sealed class AdminUserBanHistoryEntry
 {
     public long id { get; set; }
@@ -331,6 +376,7 @@ public class BanUserRequest
     public string reason { get; set; } = string.Empty;
     public string? internalReason { get; set; }
     public string? expires { get; set; }
+    public bool isMachineBan { get; set; }
 }
 
 public class CreateMessageRequest

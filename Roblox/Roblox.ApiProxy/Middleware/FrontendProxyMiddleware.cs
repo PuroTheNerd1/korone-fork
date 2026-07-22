@@ -298,6 +298,12 @@ public sealed class FrontendProxyMiddleware
             return true;
         }
 
+        if (path.StartsWith("/period-styles/", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/theme-assets/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
         if (path.Equals("/js/bootstrap.min.css", StringComparison.OrdinalIgnoreCase) ||
             path.Equals("/js/axios.min.js", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("/js/3d/", StringComparison.OrdinalIgnoreCase) ||

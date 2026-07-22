@@ -930,6 +930,24 @@ public class UsersService : ServiceBase, IService
             id = appId, status = UserApplicationStatus.Approved
         });
     }
+
+    public async Task<string?> GetApprovedApplicationDiscordId(long userId)
+    {
+        return await db.QuerySingleOrDefaultAsync<string?>(
+            @"SELECT discord_id
+              FROM join_application
+              WHERE user_id = :user_id
+                AND status = :status
+                AND discord_id IS NOT NULL
+                AND discord_id != ''
+              ORDER BY created_at DESC, id DESC
+              LIMIT 1",
+            new
+            {
+                user_id = userId,
+                status = UserApplicationStatus.Approved,
+            });
+    }
     /// <summary>
     /// Check duplicate ROBLOX id.
     /// </summary>

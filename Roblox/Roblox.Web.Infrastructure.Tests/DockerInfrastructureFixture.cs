@@ -11,7 +11,8 @@ namespace Roblox.Web.Infrastructure.Tests;
 public sealed class DockerInfrastructureFixture
 {
     private static readonly Lazy<Task<bool>> InfrastructureAvailable = new(CheckInfrastructureAvailableAsync);
-    private static int _configured;
+    private static readonly object ServiceProviderLock = new();
+    private static IServiceProvider? _serviceProvider;
 
     public static string PostgresConnectionString =>
         Environment.GetEnvironmentVariable("KORONE_TEST_POSTGRES") ??
@@ -98,18 +99,23 @@ public sealed class DockerInfrastructureFixture
 
     private static void ConfigureServiceLayer()
     {
-        if (Interlocked.Exchange(ref _configured, 1) == 1)
+        lock (ServiceProviderLock)
         {
-            return;
+            if (_serviceProvider == null)
+            {
+                Roblox.Services.Database.Configure(PostgresConnectionString);
+                Roblox.Services.Cache.Configure(RedisConnectionString);
+                InfrastructureTestHelpers.TryConfigureSessionJwt();
+
+                var services = new ServiceCollection();
+                services.AddRobloxServiceLayer();
+                _serviceProvider = services.BuildServiceProvider();
+            }
+
+            // Other infrastructure tests intentionally replace the legacy static provider
+            // with short-lived scopes. Reassert this durable Docker provider for every DB test.
+            Roblox.Services.ServiceProvider.Initialize(_serviceProvider);
         }
-
-        Roblox.Services.Database.Configure(PostgresConnectionString);
-        Roblox.Services.Cache.Configure(RedisConnectionString);
-        InfrastructureTestHelpers.TryConfigureSessionJwt();
-
-        var services = new ServiceCollection();
-        services.AddRobloxServiceLayer();
-        Roblox.Services.ServiceProvider.Initialize(services.BuildServiceProvider());
     }
 }
 

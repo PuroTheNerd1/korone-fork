@@ -118,7 +118,7 @@ public class Catalog : ControllerBase
                 {
                     category = "All",
                     categoryId = 1,
-                    name = "All Categories",
+                    name = "View All Items",
                     orderIndex = 1,
                     subcategories = new List<dynamic>(),
                     isSearchable = true,

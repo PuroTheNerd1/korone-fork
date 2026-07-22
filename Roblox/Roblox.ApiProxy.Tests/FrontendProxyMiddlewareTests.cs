@@ -48,6 +48,8 @@ public class FrontendProxyMiddlewareTests
 
     [Theory]
     [InlineData("/_next/static/chunks/main.js")]
+    [InlineData("/period-styles/early-2018.example.css")]
+    [InlineData("/theme-assets/source-sans-pro.example.woff2")]
     [InlineData("/js/bootstrap.min.css")]
     [InlineData("/js/3d/three-r137/three.js")]
     [InlineData("/js/3d/three-r137/OBJLoaderr.js")]

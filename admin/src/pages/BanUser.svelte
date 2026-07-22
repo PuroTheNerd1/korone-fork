@@ -4,6 +4,7 @@
 
 	import Main from '../components/templates/Main.svelte';
 	import request from '../lib/request';
+	import { is as isRank } from '../stores/rank';
 
 	const quickFillReasons: { name: string; text: string }[] = [
 		{
@@ -64,6 +65,9 @@
 	let errorMessage: string | undefined;
 	let expires: string|undefined;
 	let internalReason: string|undefined;
+	let isMachineBan = false;
+	const genericTosReason = 'This account has been closed due to violating Korone terms of service.';
+	const isOwner = isRank('owner');
 </script>
 
 <svelte:head>
@@ -85,7 +89,7 @@
 			<textarea {disabled} class="form-control mt-2" placeholder="Internal Reason (only visible to staff)" bind:value={internalReason} />
 			<div class="row mt-4">
 				<div class="col-12 col-lg-3">
-					<select class="form-control" bind:value={expires}>
+					<select class="form-control" bind:value={expires} disabled={disabled || isMachineBan}>
 						<option value="permanent">Permanent</option>
 						<option value="1,seconds">Warning</option>
 						<option value="1,days">1 Day</option>
@@ -96,7 +100,18 @@
 						<option value="365,days">1 Year</option>
 					</select>
 				</div>
+				{#if isOwner}
+					<div class="col-12 col-lg-4 d-flex align-items-center mt-3 mt-lg-0">
+						<label class="mb-0">
+							<input type="checkbox" bind:checked={isMachineBan} {disabled} />
+							Silent machine ban
+						</label>
+					</div>
+				{/if}
 			</div>
+			{#if isMachineBan}
+				<p class="text-muted mt-2">The public reason is forced to the generic Terms of Service termination reason. Enforcement occurs after the client validates its machine.</p>
+			{/if}
 
 			<h3 class="mt-4">Quick Fill</h3>
 			<div>
@@ -118,16 +133,16 @@
 				{disabled}
 				on:click={(e) => {
 					// @ts-ignore
-					let reason = document.getElementById('deletion-reason').value;
+					let reason = isMachineBan ? genericTosReason : document.getElementById('deletion-reason').value;
 					let expiresUtc = Date.now();
 					let expiresStr = '';
-					if (expires !== 'permanent') {
+					if (!isMachineBan && expires !== 'permanent') {
 						let [val, period] = expires.split(',');
 						let periodToMsec = period === 'seconds' ? 1000 : period === 'hours' ? (1000 * 60 * 60) : period === 'days' ? (86400 * 1000) : 0;
 						expiresUtc += parseInt(val, 10) * periodToMsec;
 						expiresStr = new Date(expiresUtc).toISOString();
 					}
-					if (internalReason === null || internalReason.length < 3) {
+					if (!internalReason || internalReason.length < 3) {
 						errorMessage = 'Internal reason is required.';
 						return
 					}
@@ -138,6 +153,7 @@
 							reason,
 							internalReason: internalReason || null,
 							expires: expiresStr,
+							isMachineBan,
 						})
 						.then((d) => {
 							navigate('/admin/manage-user/' + userId);

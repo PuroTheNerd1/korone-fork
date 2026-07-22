@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Roblox.Services;
+using Roblox.Web.Infrastructure.Configuration;
+using Roblox.Web.Infrastructure.Http;
+using Roblox.Web.Infrastructure.Services;
 using Roblox.Website.Controllers;
 
 namespace Roblox.Web.Infrastructure.Tests;
@@ -68,9 +71,24 @@ public class SessionNegotiationRouteTests
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddOptions<RobloxWebInfrastructureOptions>();
+        builder.Services.AddScoped(_ => new RobloxServiceAccessor());
+        builder.Services.AddSingleton<IRobloxRequestContextAccessor, RobloxRequestContextAccessor>();
+        builder.Services.AddSingleton<FileContentCache>();
         builder.Services.AddControllers().AddApplicationPart(typeof(BypassController).Assembly);
 
         var app = builder.Build();
+        app.Use(async (context, next) =>
+        {
+            context.SetRobloxRequestContext(new RobloxRequestContext
+            {
+                HashedIp = "ip",
+                IsRobloxClient = true,
+                UserAgent = "Roblox/WinInet",
+            });
+            await next();
+        });
         app.MapControllers();
         await app.StartAsync();
 

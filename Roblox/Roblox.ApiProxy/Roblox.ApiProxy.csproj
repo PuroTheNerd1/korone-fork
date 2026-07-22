@@ -17,4 +17,17 @@
       <ProjectReference Include="..\Roblox.Web.Infrastructure\Roblox.Web.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Update="appsettings.json"
+               Condition="'$(ExcludeAppSettingsFromOutput)' == 'true'"
+               CopyToOutputDirectory="Never"
+               CopyToPublishDirectory="Never" />
+    </ItemGroup>
+
+    <Target Name="RemoveAppSettingsFromBuildOutput"
+            AfterTargets="Build;Publish"
+            Condition="'$(ExcludeAppSettingsFromOutput)' == 'true'">
+      <Delete Files="$(TargetDir)appsettings.json" />
+    </Target>
+
 </Project>

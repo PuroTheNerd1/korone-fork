@@ -51,6 +51,7 @@ public class RobloxServiceAccessor : IDisposable
     private DiscordBotApi? _discordBotApi;
     private DonationRewardService? _donationRewards;
     private AuthenticationService? _authentication;
+    private MachineBanService? _machineBan;
 
     public RobloxServiceAccessor()
     {
@@ -94,6 +95,7 @@ public class RobloxServiceAccessor : IDisposable
     public R2StorageService r2Storage => GetService(ref _r2Storage);
     public DonationRewardService donationRewards => GetService(ref _donationRewards);
     public AuthenticationService authentication => GetService(ref _authentication);
+    public MachineBanService machineBan => GetService(ref _machineBan);
     public RobloxApi robloxApi => _robloxApi ??= new RobloxApi();
     public LeakCheckApi leakCheck => _leakCheck ??= new LeakCheckApi(Roblox.Configuration.LeakCheckApiKey);
     public DiscordBotApi discordBotApi => _discordBotApi ??= new DiscordBotApi(Roblox.Configuration.DiscordBotToken);
