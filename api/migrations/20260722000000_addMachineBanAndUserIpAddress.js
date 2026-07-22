@@ -23,10 +23,11 @@ exports.up = async function (knex) {
   // AccountStatus.MachineBanned is 7. The enum existed before the durable registry.
   await knex.raw(`
     INSERT INTO user_machine_ban (user_id, actor_user_id, internal_reason)
-    SELECT id, CASE WHEN EXISTS (SELECT 1 FROM "user" system_user WHERE system_user.id = 1) THEN 1 ELSE NULL END,
+    SELECT source_user.id,
+           CASE WHEN EXISTS (SELECT 1 FROM "user" AS fallback_user WHERE fallback_user.id = 1) THEN 1 ELSE NULL END,
            'Backfilled from AccountStatus.MachineBanned'
-    FROM "user"
-    WHERE status = 7
+    FROM "user" AS source_user
+    WHERE source_user.status = 7
     ON CONFLICT (user_id) DO NOTHING
   `);
 
