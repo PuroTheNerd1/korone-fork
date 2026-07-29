@@ -6,10 +6,10 @@ import AuthenticationStore from "../../stores/authentication";
 
 const tiers = [
     //{ amount: 5, name: "Saturn's Ring", img: '/img/DonatorItems/SaturnsRing.png', assetId: '764757', robux: 500 },
-    { amount: 10, name: "Sea Traveler's Panama", img: '/img/DonatorItems/STP.png', assetId: '864051', robux: 1100 },
-    { amount: 15, name: "Oasis Sombrero", img: '/img/DonatorItems/Sombrero.png', assetId: '864087', robux: 1750 },
-    { amount: 25, name: 'Aquatic Horns of the Distilled Shoreline', img: '/img/DonatorItems/Horns.png', assetId: '864095', robux: 3100, popular: true },
-    { amount: 50, name: 'Dominus Aecor', img: '/img/DonatorItems/Dom.png', assetId: '864039', robux: 6000, bundle: true },
+    { amount: 10, name: "Peasant's Crown of Nihilus", img: 'https://cdn.pekora.zip/images/thumbnails/c53972802762289e105cf642060f7ecb751dd1eeff1a984194bf296e9bd42531.png', assetId: '957733', robux: 1100 },
+    { amount: 15, name: "Glacial Demise", img: 'https://cdn.pekora.zip/images/thumbnails/c40898c0f3cb805e24f78864c7e4a7ef88651c48760713ba5f8d6bedc2a41583.png', assetId: '957793', robux: 1750 },
+    { amount: 25, name: 'Doomspire Warhelm of Doom', img: 'https://cdn.pekora.zip/images/thumbnails/992a698e6f0aa56829c2c8cac1fa657e00eb7e4edaf387c655979349886e97e0.png', assetId: '661866', robux: 3100, popular: true },
+    { amount: 50, name: 'Living Art: Combat on the Scorched Heights', img: 'https://cdn.pekora.zip/images/thumbnails/99d4c0ad7942542dcc518da64ecc4a77c7ea0c40eeaf186a86c1f6a4369e641f.png', assetId: '957727', robux: 6000, bundle: true },
 ];
 
 const cryptoMethods = [
@@ -759,7 +759,7 @@ const useStyles = createUseStyles({
     },
 });
 
-const TARGET_DATE = new Date('2026-08-01T00:00:00');
+const TARGET_DATE = new Date('2026-09-01T00:00:00');
 
 const getTimeUntilTarget = () => {
     let diff = Math.max(0, TARGET_DATE.getTime() - Date.now());
