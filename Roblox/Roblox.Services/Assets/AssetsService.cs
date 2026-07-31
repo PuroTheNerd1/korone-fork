@@ -696,14 +696,16 @@ public class AssetsService : ServiceBase, IService
         await UploadThumbnail(assetId, response, 420, 420, ModerationStatus.ReviewApproved);
     }
 
-    private async Task CreateImageThumbnail(long assetId, CancellationToken? cancellationToken = null)
+    private async Task CreateImageThumbnail(long assetId, Models.Assets.Type assetType,
+        CancellationToken? cancellationToken = null)
     {
         if (await TryCreateRawImageThumbnail(assetId, cancellationToken))
             return;
 
-        // Type.Image can also contain a Roblox XML/model object whose Decal points at the
-        // actual texture. Those inputs still need RCC to resolve the texture reference.
-        await CreateAssetTextureThumbnail(assetId, Type.Image, cancellationToken);
+        // Image-backed asset types can also contain a Roblox XML/model object whose Decal
+        // points at the actual texture. Preserve the original type so Face keeps its
+        // face-specific RCC operation while Image, Badge, and GamePass use image rendering.
+        await CreateAssetTextureThumbnail(assetId, assetType, cancellationToken);
     }
     private async Task CreatePackageThumbnail(long assetId, CancellationToken? cancellationToken = null)
     {
@@ -966,7 +968,7 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.GamePass:
             case Models.Assets.Type.Badge:
             case Models.Assets.Type.Image:
-                thumbRequests.Add(CreateImageThumbnail(assetId, cancellationToken));
+                thumbRequests.Add(CreateImageThumbnail(assetId, assetType, cancellationToken));
                 break;
             // clothing
             case Models.Assets.Type.Shirt:
@@ -999,6 +1001,7 @@ public class AssetsService : ServiceBase, IService
             case Models.Assets.Type.Audio:
             case Models.Assets.Type.Lua:
             case Models.Assets.Type.Plugin:
+            case Models.Assets.Type.Place:
                 break;
             // All animations
             case Models.Assets.Type.ClimbAnimation:
