@@ -24,6 +24,7 @@ using Roblox.Models.Staff;
 using Roblox.Models.Trades;
 using Roblox.Models.Users;
 using Roblox.Services.App.FeatureFlags;
+using Roblox.Services.Assets;
 using Roblox.Services.Exceptions;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
@@ -479,11 +480,15 @@ public class AdminApiService : ServiceBase
         item.creatorId = creatorId;
         item.creatorName = creatorName;
 
-        if (item.content_url == null && item.assetType != Type.Audio && item.assetType != Type.Video)
+        if (item.content_url == null && AssetRenderQueue.IsRenderable(item.assetType))
         {
-            await assets.QueueAssetRenderAsync(item.id, item.assetType);
+            await assets.RenderAssetsInBurstAsync(new[] { (item.id, item.assetType) });
+            item.content_url = await db.QuerySingleOrDefaultAsync<string?>(
+                "SELECT content_url FROM asset_thumbnail WHERE asset_id = :assetId ORDER BY id DESC LIMIT 1",
+                new { assetId = item.id });
         }
-        else if (item.content_url != null)
+
+        if (item.content_url != null)
         {
             item.content_url = GetImageUrl("/images/thumbnails/" + item.content_url + ".png");
         }
@@ -542,7 +547,7 @@ public class AdminApiService : ServiceBase
 
             var firstPass = (await db.QueryAsync<PendingAssetEntry>(template.RawSql, template.Parameters)).ToList();
             if (firstPass.Count == 0)
-                return result;
+                break;
 
             offset += firstPass.Count;
             foreach (var item in firstPass)
@@ -555,17 +560,52 @@ public class AdminApiService : ServiceBase
                     continue;
 
                 item.creatorName = creatorName;
-
-                if (item.content_url != null)
-                {
-                    item.content_url = GetImageUrl("/images/thumbnails/" + item.content_url + ".png");
-                }
-
                 result.Add(item);
             }
         }
 
+        var missingThumbnails = result
+            .Where(item => item.content_url == null && AssetRenderQueue.IsRenderable(item.assetType))
+            .ToArray();
+        if (missingThumbnails.Length != 0)
+        {
+            try
+            {
+                await assets.RenderAssetsInBurstAsync(
+                    missingThumbnails.Select(item => (item.id, item.assetType)));
+            }
+            catch (Exception e)
+            {
+                Writer.Info(LogGroup.AdminApi,
+                    "One or more moderation thumbnail burst renders failed: {0}\n{1}", e.Message, e.StackTrace);
+            }
+
+            var renderedThumbnails = (await db.QueryAsync<PendingAssetThumbnailRow>(
+                    @"SELECT asset_id AS ""assetId"", content_url AS ""contentUrl""
+                      FROM asset_thumbnail
+                      WHERE asset_id = ANY(:assetIds)",
+                    new { assetIds = missingThumbnails.Select(item => item.id).ToArray() }))
+                .Where(item => item.contentUrl != null)
+                .GroupBy(item => item.assetId)
+                .ToDictionary(group => group.Key, group => group.Last().contentUrl!);
+
+            foreach (var item in missingThumbnails)
+            {
+                if (renderedThumbnails.TryGetValue(item.id, out var contentUrl))
+                    item.content_url = contentUrl;
+            }
+        }
+
+        foreach (var item in result.Where(item => item.content_url != null))
+            item.content_url = GetImageUrl("/images/thumbnails/" + item.content_url + ".png");
+
         return result;
+    }
+
+    private sealed class PendingAssetThumbnailRow
+    {
+        public long assetId { get; set; }
+        public string? contentUrl { get; set; }
     }
 
     public async Task ModerateAssetAsync(ModerateAssetRequest request, long actorUserId, bool actorIsOwner, Func<long, bool> isOwnerUserId)
@@ -2099,7 +2139,7 @@ Thank you for your understanding,
     public async Task RequestAssetReRenderAsync(ReRenderRequest request)
     {
         var details = await assets.GetAssetCatalogInfo(request.assetId);
-        await assets.QueueAssetRenderAsync(request.assetId, details.assetType);
+        await assets.RenderAssetsInBurstAsync(new[] { (request.assetId, details.assetType) });
     }
 
     private sealed class BuggedRenderAssetRow
@@ -2140,10 +2180,7 @@ Thank you for your understanding,
                 limit,
             })).ToList();
 
-        foreach (var row in rows)
-        {
-            await assets.QueueAssetRenderAsync(row.assetId, row.assetType);
-        }
+        await assets.RenderAssetsInBurstAsync(rows.Select(row => (row.assetId, row.assetType)));
 
         return new FixBuggedRendersResponse
         {
@@ -2296,7 +2333,7 @@ Thank you for your understanding,
         if (info.assetType == Type.Package)
             throw new StaffException("Cannot create an asset version for this type");
         var result = await assets.CreateAssetVersion(request.assetId, 1, request.rbxm.OpenReadStream());
-        await assets.QueueAssetRenderAsync(request.assetId, info.assetType);
+        await assets.RenderAssetsInBurstAsync(new[] { (request.assetId, info.assetType) });
         return new AssetVersionWithIdEntry
         {
             assetId = result.assetId,
@@ -2509,7 +2546,8 @@ Thank you for your understanding,
 
         var assetDetails = await assets.CreateAsset(request.name, request.description, 1,
             CreatorType.User, 1, file, request.assetTypeId, request.genre, ModerationStatus.ReviewApproved,
-            DateTime.UtcNow, DateTime.UtcNow, request.robloxAssetId, disableRender);
+            DateTime.UtcNow, DateTime.UtcNow, request.robloxAssetId, disableRender,
+            renderInBurst: true);
         if (request.assetTypeId == Type.Package)
         {
             if (packageAssetIds == null)
@@ -2517,7 +2555,7 @@ Thank you for your understanding,
 
             foreach (var id in packageAssetIds.Distinct())
                 await assets.InsertPackageAsset(assetDetails.assetId, id);
-            await assets.QueueAssetRenderAsync(assetDetails.assetId, request.assetTypeId);
+            await assets.RenderAssetsInBurstAsync(new[] { (assetDetails.assetId, request.assetTypeId) });
         }
 
         await assets.SetItemPrice(assetDetails.assetId, request.price, null);
@@ -2537,10 +2575,11 @@ Thank you for your understanding,
         if (ok == null) throw new StaffException("Invalid file provided");
         buf.Position = 0;
         var texture = await assets.CreateAsset(request.file.FileName, $"{request.assetTypeId} Image", 1,
-            CreatorType.User, 1, buf, Type.Image, Genre.All, ModerationStatus.ReviewApproved, DateTime.UtcNow, DateTime.UtcNow);
+            CreatorType.User, 1, buf, Type.Image, Genre.All, ModerationStatus.ReviewApproved, DateTime.UtcNow,
+            DateTime.UtcNow, renderInBurst: true);
         var asset = await assets.CreateAsset(request.name, request.description, 1, CreatorType.User, 1,
             null, request.assetTypeId, request.genre, ModerationStatus.ReviewApproved, DateTime.UtcNow,
-            DateTime.UtcNow, request.robloxAssetId, false, texture.assetId);
+            DateTime.UtcNow, request.robloxAssetId, false, texture.assetId, renderInBurst: true);
         await assets.SetItemPrice(asset.assetId, request.price, null);
         await assets.UpdateAssetMarketInfo(asset.assetId, request.isForSale, false, false, null, null);
         return asset;
@@ -2633,7 +2672,8 @@ Thank you for your understanding,
                 DateTime.UtcNow,
                 DateTime.UtcNow,
                 contentId,
-                disableRender);
+                disableRender,
+                renderInBurst: true);
 
             imageData.Position = 0;
             var img = await Imager.ReadAsync(content);
@@ -2670,7 +2710,8 @@ Thank you for your understanding,
             assetId,
             disableRender,
             contentId,
-            assetIdOverride: assetId);
+            assetIdOverride: assetId,
+            renderInBurst: true);
 
         if (robloxDetails.AssetTypeId.Value == Type.Image && content != null)
         {
@@ -2777,7 +2818,7 @@ Thank you for your understanding,
             content.Position = 0;
             var assetDetails = await assets.CreateAsset(item.name, null, 1,
                 CreatorType.User, 1, content, info.AssetTypeId!.Value, Genre.All, ModerationStatus.ReviewApproved,
-                DateTime.UtcNow, DateTime.UtcNow, item.id);
+                DateTime.UtcNow, DateTime.UtcNow, item.id, renderInBurst: true);
             ids.Add(assetDetails.assetId);
         }
 
@@ -2953,7 +2994,8 @@ Thank you for your understanding,
                     disableRender: true);
 
                 await UpdateCreatedBulkCopyAssetAsync(assetDetails.assetId, candidate, request, actor);
-                await assets.QueueAssetRenderAsync(assetDetails.assetId, candidate.Details.AssetTypeId.Value);
+                await assets.RenderAssetsInBurstAsync(
+                    new[] { (assetDetails.assetId, candidate.Details.AssetTypeId.Value) });
                 resultByRobloxAssetId[candidate.RobloxAssetId] = CreateBulkCopySuccess(candidate.RobloxAssetId, assetDetails.assetId, candidate.PriceRobux, false);
             }
             catch (Exception ex)
@@ -3062,8 +3104,11 @@ Thank you for your understanding,
                     disableRender: true);
 
                 await UpdateCreatedBulkCopyAssetAsync(assetDetails.assetId, candidate, request, actor);
-                await assets.QueueAssetRenderAsync(meshAsset.assetId, Type.Mesh);
-                await assets.QueueAssetRenderAsync(assetDetails.assetId, candidate.Details.AssetTypeId.Value);
+                await assets.RenderAssetsInBurstAsync(new[]
+                {
+                    (meshAsset.assetId, Type.Mesh),
+                    (assetDetails.assetId, candidate.Details.AssetTypeId.Value),
+                });
                 resultByRobloxAssetId[candidate.RobloxAssetId] = CreateBulkCopySuccess(candidate.RobloxAssetId, assetDetails.assetId, candidate.PriceRobux, false);
             }
             catch (Exception ex)
@@ -3392,7 +3437,7 @@ Thank you for your understanding,
             await EnsureNoRobloxCopyDuplicate(details);
 
         await CopyItemFloodCheck(actor);
-        var backportId = await assets.BackportAccessory(request.assetId);
+        var backportId = await assets.BackportAccessory(request.assetId, renderInBurst: true);
         if (backportId == 0)
             throw new StaffException("Failed to backport asset");
         await db.ExecuteAsync("INSERT INTO moderation_migrate_asset(asset_id, roblox_asset_id, actor_id) VALUES (@assetId, @robloxAssetId, @actorId)",
@@ -3436,7 +3481,7 @@ Thank you for your understanding,
         await CopyItemFloodCheck(actor);
         var assetDetails = await assets.CreateAsset(details.Name, details.Description, 1,
             CreatorType.User, 1, content, details.AssetTypeId!.Value, Genre.All, ModerationStatus.ReviewApproved,
-            DateTime.UtcNow, DateTime.UtcNow, request.assetId);
+            DateTime.UtcNow, DateTime.UtcNow, request.assetId, renderInBurst: true);
         await db.ExecuteAsync("INSERT INTO moderation_migrate_asset(asset_id, roblox_asset_id, actor_id) VALUES (@assetId, @robloxAssetId, @actorId)",
             new
             {

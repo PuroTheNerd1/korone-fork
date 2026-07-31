@@ -1065,6 +1065,26 @@ public class AssetsService : ServiceBase, IService
         }
     }
 
+    /// <summary>
+    /// Renders assets immediately and concurrently without dispatching them through the render queue.
+    /// Each render gets its own service instance because RenderAssetAsync stores per-render version state.
+    /// </summary>
+    public async Task RenderAssetsInBurstAsync(
+        IEnumerable<(long assetId, Models.Assets.Type assetType)> renderRequests,
+        CancellationToken? cancellationToken = null)
+    {
+        var requests = renderRequests
+            .Where(request => AssetRenderQueue.IsRenderable(request.assetType))
+            .Distinct()
+            .ToArray();
+
+        await Task.WhenAll(requests.Select(async request =>
+        {
+            using var renderService = ServiceProvider.GetOrCreate<AssetsService>(this);
+            await renderService.RenderAssetAsync(request.assetId, request.assetType, cancellationToken);
+        }));
+    }
+
     public void RenderAsset(long assetId, Models.Assets.Type assetType)
     {
         if (!AssetRenderQueue.Enabled)
@@ -1347,7 +1367,7 @@ public class AssetsService : ServiceBase, IService
         }
     }
 
-    public async Task<long> BackportAccessory(long assetId)
+    public async Task<long> BackportAccessory(long assetId, bool renderInBurst = false)
     {
         var robloxApi = new RobloxApi();
         using var assetsService = ServiceProvider.GetOrCreate<AssetsService>(this);
@@ -1400,7 +1420,7 @@ public class AssetsService : ServiceBase, IService
 
                 var meshDetails = await assetsService.CreateAsset(accessoryAsset.Name ?? "", accessoryAsset.Description, 1,
                     CreatorType.User, 1, newMeshStream, Type.Mesh, Genre.All, ModerationStatus.ReviewApproved,
-                    DateTime.UtcNow, DateTime.UtcNow, long.Parse(meshId));
+                    DateTime.UtcNow, DateTime.UtcNow, long.Parse(meshId), renderInBurst: renderInBurst);
                 Writer.Info(LogGroup.AdminApi, "UGC Backporter new mesh id : {0}  OLD mesh id: {1}", meshDetails.assetId, meshId.Length);
                 long newMeshIdLong = meshDetails.assetId; // example, is a long just incase
                 string newMeshId = newMeshIdLong.ToString(); // convert to string
@@ -1418,7 +1438,7 @@ public class AssetsService : ServiceBase, IService
                 Stream newRbxmStream = new MemoryStream(newRbxmByte);
                 var assetDetails = await assetsService.CreateAsset(accessoryAsset.Name ?? "", accessoryAsset.Description, 1,
                                     CreatorType.User, 1, newRbxmStream, (Type)accessoryAsset.AssetTypeId, Genre.All, ModerationStatus.ReviewApproved,
-                                    DateTime.UtcNow, DateTime.UtcNow, assetId);
+                                    DateTime.UtcNow, DateTime.UtcNow, assetId, renderInBurst: renderInBurst);
                 return assetDetails.assetId;
             }
         }
@@ -1529,7 +1549,8 @@ public class AssetsService : ServiceBase, IService
     public async Task<Dto.Assets.CreateResponse> CreateAsset(string name, string? description, long creatorUserId,
         CreatorType creatorType, long creatorId, Stream? content, Models.Assets.Type assetType,
         Models.Assets.Genre genre, Models.Assets.ModerationStatus moderationStatus, DateTime? createdAt = null,
-        DateTime? updatedAt = null, long? robloxAssetId = 0, bool disableRender = false, long? contentId = null, long? assetIdOverride = null)
+        DateTime? updatedAt = null, long? robloxAssetId = 0, bool disableRender = false, long? contentId = null,
+        long? assetIdOverride = null, bool renderInBurst = false)
     {
         // Validation
         ValidateNameAndDescription(name, description);
@@ -1645,7 +1666,10 @@ public class AssetsService : ServiceBase, IService
 
         if (!disableRender)
         {
-            await QueueAssetRenderAsync(assetId, assetType);
+            if (renderInBurst)
+                await RenderAssetAsync(assetId, assetType);
+            else
+                await QueueAssetRenderAsync(assetId, assetType);
         }
 
         return new CreateResponse()
