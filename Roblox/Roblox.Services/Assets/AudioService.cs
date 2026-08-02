@@ -279,7 +279,8 @@ public class AudioService : ServiceBase, IService
             var isMp3 = IsMp3Media(mediaInfo, tempFile);
             var isCreatorFormatException = creatorId == 15422 ||
                 creatorId == 16815 ||
-                creatorId == 16024;
+                creatorId == 16024 ||
+                creatorId == 13224;
 
             if (!isMp3 && !isCreatorFormatException)
                 return MediaValidation.UnsupportedFormat;
