@@ -1163,8 +1163,6 @@ public class AdminApiService : ServiceBase
 
     public async Task<IReadOnlyCollection<AdminAltAccountByMacEntry>> GetAltAccountsByMacAsync(AdminActorContext actor, int limit = 50, int offset = 0)
     {
-        if (!actor.isOwner)
-            throw new NotFoundException();
         if (limit is > 200 or < 1) limit = 50;
         if (offset < 0) offset = 0;
 
@@ -1204,9 +1202,6 @@ public class AdminApiService : ServiceBase
 
     public async Task<AdminUserAltAccountsResponse> GetUserAltAccountScoresAsync(AdminActorContext actor, long userId)
     {
-        if (!actor.isOwner)
-            throw new NotFoundException();
-
         await users.GetUserById(userId);
         var rawSourceMacs = await db.QueryAsync<string>(
             "SELECT mac_address::text FROM user_mac_address WHERE user_id = @userId",

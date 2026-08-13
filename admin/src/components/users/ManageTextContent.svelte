@@ -92,14 +92,12 @@
                 </a></button>
             </Permission>
 
-            {#if rank.is('owner')}
-                <Permission p="ViewMacAddresses">
+            <Permission p="ViewMacAddresses">
                 <button
                     class={textView === "MACs" ? "btn btn-primary" : "btn btn-outline-primary"}
                     on:click={(e) => { e.preventDefault(); textView = 'MACs'; }}
                 >MAC Addresses</button>
-                </Permission>
-            {/if}
+            </Permission>
         </div>
     </div>
 

@@ -45,9 +45,7 @@
 			info = d.data;
 			return d;
 		});
-		altAccounts = rank.is('owner')
-			? request.get('/user/alt-accounts?userId=' + encodeURIComponent(userId)).then((d) => d.data)
-			: Promise.resolve(null);
+		altAccounts = request.get('/user/alt-accounts?userId=' + encodeURIComponent(userId)).then((d) => d.data)
 		modalVisible = false;
 	}
 	let title: string;
@@ -244,7 +242,7 @@
 				</div>
 				<ManageTextContent userId={userId} />
 
-				{#if rank.is('owner')}
+				<Permission p="ViewMacAddresses">
 					<div class="card bg-dark text-light mt-3">
 						<div class="card card-body card-header">
 							<h3 class="mb-0">Alt Accounts</h3>
