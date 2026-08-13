@@ -465,7 +465,7 @@ public class GameServerService : ServiceBase
             @"SELECT s.id, s.asset_id AS assetId, s.port, s.updated_at AS updatedAt, s.status, s.type
           FROM asset_server s
           WHERE s.asset_id = :assetId AND s.type = :type
-          ORDER BY (SELECT COUNT(*) FROM asset_server_player p WHERE p.server_id = s.id) ASC",
+          ORDER BY (SELECT COUNT(*) FROM asset_server_player p WHERE p.server_id = s.id) DESC",
             new
             {
                 assetId = placeId,
