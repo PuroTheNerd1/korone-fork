@@ -293,7 +293,7 @@
 							{/await}
 						</div>
 					</div>
-				{/if}
+				</Permission>
 
 				{#if rank.hasPermission("SetPermissions")}
 					<ManagePermissions userId={userId} />
