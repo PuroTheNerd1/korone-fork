@@ -9,3 +9,6 @@ We sincerely don't recommend hosting this source code for a number of reasons
 3. The people behind the source leak are the same people who put a backdoor on the August 2025 source code which put a reverse shell onto your computer
 
 If you really want to make a Roblox revival then learn how to code and reverse engineer firstly as revivals aren't an easy thing to develop.
+
+Older versions:
+- https://github.com/Anontux/pekora-latest-src = 30 August 2025
