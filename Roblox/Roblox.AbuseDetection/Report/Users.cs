@@ -5,9 +5,9 @@ namespace Roblox.AbuseDetection.Report;
 public static class UsersAbuse
 {
     private static UsersService users = new();
-    private const int CreatedLastHourThresholdForDisable = 300;
-    private const int CreatedLastDayThresholdForDisable = 3500;
-    private const int UserCreationAllowedAttemptsPerHour = 150;
+    private const int CreatedLastHourThresholdForDisable = 10;
+    private const int CreatedLastDayThresholdForDisable = 35;
+    private const int UserCreationAllowedAttemptsPerHour = 5;
 
     public static async Task<bool> ShouldAllowCreation(Models.ShouldAllowCreationRequest request)
     {
